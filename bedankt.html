@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bedankt voor je bestelling</title>
+<link rel="icon" type="image/png" href="photos/favicon.png">
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f5f3ef;
+  color: #1a1a1a;
+}
+
+.bar {
+  background: linear-gradient(180deg, #15b9c2, #12005a);
+  color: white;
+  padding: 8px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.topbar ul {
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+  list-style: none;
+  padding: 12px;
+  background: white;
+}
+
+.topbar a {
+  text-decoration: none;
+  color: #333;
+}
+
+.small-hero {
+  height: 160px;
+  position: relative;
+  background: linear-gradient(135deg, #0082aa, #12005a);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.small-hero .check {
+  font-size:50px;
+}
+
+h1 {
+  text-align: center;
+  margin: 25px 0 5px;
+  color:#12005a;
+}
+
+.sub {
+  text-align:center;
+  color:#555;
+  margin-bottom:25px;
+}
+
+.wrap {
+  max-width: 700px;
+  margin: auto;
+  padding: 0 20px 60px;
+}
+
+.card {
+  background:white;
+  border-radius:12px;
+  padding:25px;
+  margin-bottom:20px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.08);
+}
+
+.order-number {
+  font-size:20px;
+  font-weight:bold;
+  color:#006e93;
+}
+
+.detail-row {
+  display:flex;
+  justify-content:space-between;
+  padding:8px 0;
+  border-bottom:1px solid #eee;
+  font-size:14px;
+}
+
+.detail-row:last-child{ border-bottom:none; }
+
+.item-row {
+  display:flex;
+  align-items:center;
+  gap:15px;
+  padding:12px 0;
+  border-bottom:1px solid #eee;
+}
+
+.item-row:last-child{ border-bottom:none; }
+
+.item-row img {
+  width:60px;
+  height:60px;
+  object-fit:cover;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+
+.item-row .name {
+  flex:1;
+}
+
+.total-row {
+  display:flex;
+  justify-content:space-between;
+  font-size:18px;
+  font-weight:bold;
+  padding-top:15px;
+  margin-top:10px;
+  border-top:2px solid #ddd;
+}
+
+.home-btn {
+  display:block;
+  text-align:center;
+  margin-top:10px;
+  padding:14px;
+  background:linear-gradient(135deg, #332270, #003ca4);
+  color:white;
+  text-decoration:none;
+  border-radius:12px;
+  font-weight:bold;
+}
+
+.empty-state {
+  text-align:center;
+  padding:60px 20px;
+  color:#777;
+}
+</style>
+</head>
+
+<body>
+
+<div class="bar">Gratis bezorging vanaf €35</div>
+
+<nav class="topbar">
+  <ul>
+    <li><a href="homepage.html">Home</a></li>
+    <li><a href="airbus.html">Airbus</a></li>
+    <li><a href="boeing.html">Boeing</a></li>
+    <li><a href="mcdonalds.html">McDonnell Douglas</a></li>
+    <li><a href="veiling.html">veiling</a></li>
+  </ul>
+</nav>
+
+<div class="small-hero"><span class="check">✅</span></div>
+
+<h1>Bedankt voor je bestelling!</h1>
+<p class="sub" id="intro-text"></p>
+
+<div class="wrap" id="content"></div>
+
+<script>
+const order = JSON.parse(localStorage.getItem("laatste_bestelling") || "null");
+const content = document.getElementById("content");
+
+if (!order) {
+    content.innerHTML = `
+        <div class="card empty-state">
+            We konden geen bestelgegevens vinden.<br><br>
+            <a href="homepage.html" class="home-btn">← Terug naar de homepage</a>
+        </div>
+    `;
+} else {
+    document.getElementById("intro-text").textContent =
+        "We hebben je bestelling ontvangen en gaan er snel mee aan de slag.";
+
+    const itemsHtml = order.items.map(item => `
+        <div class="item-row">
+            <img src="${item.image}" alt="${item.name}" onerror="this.src='photos/placeholder.png'">
+            <div class="name">
+                <strong>${item.name}</strong><br>
+                Aantal: ${item.qty}
+            </div>
+            <div>€${(item.price * item.qty).toFixed(2)}</div>
+        </div>
+    `).join("");
+
+    content.innerHTML = `
+        <div class="card">
+            <div class="order-number">Bestelnummer: ${order.orderNumber}</div>
+            <div class="detail-row"><span>Naam</span><span>${order.voornaam} ${order.achternaam}</span></div>
+            <div class="detail-row"><span>E-mail</span><span>${order.email}</span></div>
+            <div class="detail-row"><span>Adres</span><span>${order.adres}</span></div>
+            <div class="detail-row"><span>Postcode / Plaats</span><span>${order.postcode} ${order.plaats}</span></div>
+            <div class="detail-row"><span>Land</span><span>${order.land}</span></div>
+            <div class="detail-row"><span>Betaalmethode</span><span>${order.betaalmethode}</span></div>
+        </div>
+
+        <div class="card">
+            ${itemsHtml}
+            <div class="total-row">
+                <span>Totaal</span>
+                <span>€${order.total}</span>
+            </div>
+        </div>
+
+        <a href="homepage.html" class="home-btn">← Verder winkelen</a>
+    `;
+
+    localStorage.removeItem("laatste_bestelling");
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Afrekenen</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#f4f8fb;
+    margin:0;
+    padding:20px;
+}
+
+.container{
+    max-width:1200px;
+    margin:auto;
+    display:flex;
+    flex-wrap:wrap;
+    gap:30px;
+}
+
+.form-section,
+.summary-section{
+    background:white;
+    border-radius:15px;
+    padding:25px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+
+.form-section{
+    flex:2;
+    min-width:350px;
+}
+
+.summary-section{
+    flex:1;
+    min-width:320px;
+    height:fit-content;
+}
+
+h2{
+    color:#006e93;
+    margin-top:0;
+}
+
+label{
+    display:block;
+    margin-top:15px;
+    font-weight:bold;
+}
+
+input,
+select{
+    width:100%;
+    padding:12px;
+    margin-top:5px;
+    border:1px solid #ccc;
+    border-radius:8px;
+    box-sizing:border-box;
+}
+
+input.invalid{
+    border-color:#d10000;
+    background:#fff5f5;
+}
+
+input.valid{
+    border-color:#1ba672;
+}
+
+.error-msg{
+    display:block;
+    min-height:14px;
+    font-size:12px;
+    color:#d10000;
+    margin-top:4px;
+}
+
+#postcode{
+    text-transform:uppercase;
+}
+
+.order-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+    padding:12px 0;
+    border-bottom:1px solid #ddd;
+}
+
+.product-info{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.product-info img{
+    width:70px;
+    height:70px;
+    object-fit:cover;
+    border-radius:8px;
+    border:1px solid #ccc;
+}
+
+.total{
+    margin-top:20px;
+    padding-top:15px;
+    border-top:2px solid #ddd;
+    font-size:22px;
+    font-weight:bold;
+}
+
+.checkout-btn{
+    width:100%;
+    margin-top:20px;
+    padding:15px;
+    border:none;
+    border-radius:10px;
+    background:#00a8e8;
+    color:white;
+    font-size:18px;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.checkout-btn:not(:disabled):hover{
+    background:#007aa8;
+}
+
+.checkout-btn:disabled{
+    background:#b8d8e6;
+    cursor:not-allowed;
+}
+
+.form-hint{
+    font-size:12px;
+    color:#777;
+    margin-top:10px;
+}
+
+.home-btn{
+    display:inline-block;
+    margin-bottom:20px;
+    text-decoration:none;
+    background:#006e93;
+    color:white;
+    padding:10px 18px;
+    border-radius:25px;
+}
+
+.home-btn:hover{
+    background:#008cbe;
+}
+
+@media(max-width:900px){
+    .container{
+        flex-direction:column;
+    }
+}
+</style>
+</head>
+<body>
+
+<a href="homepage.html" class="home-btn">← Homepage</a>
+
+<div class="container">
+
+<div class="form-section">
+
+<h2>📦 Leveringsgegevens</h2>
+
+<label>Voornaam</label>
+<input type="text" id="voornaam">
+<span class="error-msg" id="err-voornaam"></span>
+
+<label>Achternaam</label>
+<input type="text" id="achternaam">
+<span class="error-msg" id="err-achternaam"></span>
+
+<label>E-mailadres</label>
+<input type="email" id="email">
+<span class="error-msg" id="err-email"></span>
+
+<label>Straat + Huisnummer</label>
+<input type="text" id="adres" placeholder="bv. Vliegerstraat 12">
+<span class="error-msg" id="err-adres"></span>
+
+<label>Postcode</label>
+<input type="text" id="postcode" placeholder="1234 AB" maxlength="7">
+<span class="error-msg" id="err-postcode"></span>
+
+<label>Plaats</label>
+<input type="text" id="plaats">
+<span class="error-msg" id="err-plaats"></span>
+
+<label>Land</label>
+<select id="land">
+<option>Nederland</option>
+<option>België</option>
+<option>Duitsland</option>
+</select>
+
+<h2 style="margin-top:35px;">🚚 Verzendmethode</h2>
+
+<select id="shipping">
+<option value="4.95">Standaard verzending (€4,95)</option>
+<option value="9.95">Express verzending (€9,95)</option>
+</select>
+
+<h2 style="margin-top:35px;">💳 Betaalmethode</h2>
+
+<select id="betaalmethode">
+<option>iDEAL</option>
+<option>PayPal</option>
+<option>Creditcard</option>
+<option>Bancontact</option>
+</select>
+
+</div>
+
+<div class="summary-section">
+
+<h2>🛒 Besteloverzicht</h2>
+
+<div id="cart-items"></div>
+
+<div id="shipping-info" style="margin-top:10px;color:#666;"></div>
+
+<div class="total">
+Totaal: €<span id="total">0.00</span>
+</div>
+
+<button class="checkout-btn" id="placeOrderBtn" onclick="placeOrder()" disabled>
+Bestelling plaatsen
+</button>
+
+<div class="form-hint" id="cart-empty-hint"></div>
+
+</div>
+
+</div>
+
+<script>
+/* =========================
+   CART OPHALEN
+========================= */
+const cart =
+JSON.parse(localStorage.getItem("kamervliegers_cart")) || [];
+
+const container =
+document.getElementById("cart-items");
+
+let subtotal = 0;
+
+/* =========================
+   BESTELOVERZICHT RENDEREN
+========================= */
+function renderOrderSummary() {
+    if (cart.length === 0) {
+        container.innerHTML = `<p style="color:#777">Je winkelwagen is leeg.</p>`;
+        document.getElementById("cart-empty-hint").textContent =
+            "Voeg eerst producten toe aan je winkelwagen voordat je kunt afrekenen.";
+        return;
+    }
+
+    cart.forEach(item => {
+        const row = document.createElement("div");
+        row.className = "order-item";
+
+        const itemTotal = item.price * item.qty;
+        subtotal += itemTotal;
+
+        row.innerHTML = `
+            <div class="product-info">
+                <img src="${item.image}" alt="${item.name}" onerror="this.src='photos/placeholder.png'">
+                <div>
+                    <strong>${item.name}</strong><br>
+                    Aantal: ${item.qty}
+                </div>
+            </div>
+
+            <div>
+                €${itemTotal.toFixed(2)}
+            </div>
+        `;
+
+        container.appendChild(row);
+    });
+}
+
+function updateTotal() {
+    const shippingSelect = document.getElementById("shipping");
+    let shipping = parseFloat(shippingSelect.value);
+
+    const shippingInfo = document.getElementById("shipping-info");
+
+    // GRATIS VERZENDING REGEL
+    if (subtotal >= 35) {
+        shipping = 0;
+    }
+
+    const total = subtotal + shipping;
+
+    document.getElementById("total").textContent = total.toFixed(2);
+
+    // UI tekst onder producten
+    if (shippingInfo) {
+        if (subtotal >= 35) {
+            shippingInfo.innerHTML = `
+                <s>Verzendkosten €${parseFloat(shippingSelect.value).toFixed(2)}</s>
+                <b style="color:green">Gratis verzending</b>
+            `;
+        } else {
+            shippingInfo.innerHTML = `
+                Verzendkosten €${shipping.toFixed(2)}
+            `;
+        }
+    }
+}
+
+renderOrderSummary();
+updateTotal();
+
+document
+.getElementById("shipping")
+.addEventListener("change", updateTotal);
+
+/* =========================
+   VALIDATIE
+========================= */
+const fields = {
+    voornaam:   { regex: /^[A-Za-zÀ-ÖØ-öø-ÿ\s'-]{2,}$/, msg: "Vul een geldige voornaam in (min. 2 letters)" },
+    achternaam: { regex: /^[A-Za-zÀ-ÖØ-öø-ÿ\s'-]{2,}$/, msg: "Vul een geldige achternaam in (min. 2 letters)" },
+    email:      { regex: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, msg: "Vul een geldig e-mailadres in" },
+    adres:      { regex: /^(?=.*[A-Za-z])(?=.*\d).{4,}$/, msg: "Vul een straat én huisnummer in (bv. Vliegerstraat 12)" },
+    postcode:   { regex: /^[1-9][0-9]{3}\s?[A-Za-z]{2}$/, msg: "Vul een geldige postcode in (bv. 1234 AB)" },
+    plaats:     { regex: /^[A-Za-zÀ-ÖØ-öø-ÿ\s'.-]{2,}$/, msg: "Vul een geldige plaatsnaam in" }
+};
+
+function validateField(name) {
+    const cfg = fields[name];
+    const el = document.getElementById(name);
+    const errEl = document.getElementById("err-" + name);
+    const val = el.value.trim();
+
+    if (val === "") {
+        el.classList.remove("invalid", "valid");
+        errEl.textContent = "";
+        return false;
+    }
+
+    const ok = cfg.regex.test(val);
+
+    if (ok) {
+        el.classList.remove("invalid");
+        el.classList.add("valid");
+        errEl.textContent = "";
+    } else {
+        el.classList.remove("valid");
+        el.classList.add("invalid");
+        errEl.textContent = cfg.msg;
+    }
+
+    return ok;
+}
+
+function validateAll() {
+    let allOk = true;
+
+    Object.keys(fields).forEach(name => {
+        if (!validateField(name)) allOk = false;
+    });
+
+    const btn = document.getElementById("placeOrderBtn");
+    btn.disabled = !(allOk && cart.length > 0);
+
+    return allOk;
+}
+
+Object.keys(fields).forEach(name => {
+    document.getElementById(name).addEventListener("input", validateAll);
+});
+
+validateAll();
+
+/* =========================
+   BESTELLING PLAATSEN
+========================= */
+function placeOrder() {
+    if (!validateAll() || cart.length === 0) {
+        alert("Vul alle velden correct in voordat je de bestelling plaatst.");
+        return;
+    }
+
+    const shipping = parseFloat(document.getElementById("shipping").value);
+    const total = subtotal + shipping;
+
+    const orderNumber =
+    "KV-" +
+    Math.floor(Math.random() * 100000);
+
+    const orderData = {
+        orderNumber,
+        ts: new Date().toISOString(),
+        voornaam: document.getElementById("voornaam").value.trim(),
+        achternaam: document.getElementById("achternaam").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        adres: document.getElementById("adres").value.trim(),
+        postcode: document.getElementById("postcode").value.trim().toUpperCase(),
+        plaats: document.getElementById("plaats").value.trim(),
+        land: document.getElementById("land").value,
+        betaalmethode: document.getElementById("betaalmethode").value,
+        items: cart,
+        subtotal: subtotal.toFixed(2),
+        shipping: shipping.toFixed(2),
+        total: total.toFixed(2)
+    };
+
+    /* Permanent archief — blijft staan voor admin.html */
+    const orders = JSON.parse(localStorage.getItem("kamervliegers_orders") || "[]");
+    orders.unshift(orderData);
+    localStorage.setItem("kamervliegers_orders", JSON.stringify(orders));
+
+    /* Tijdelijk record — alleen voor bedankt.html */
+    localStorage.setItem("laatste_bestelling", JSON.stringify(orderData));
+    localStorage.removeItem("kamervliegers_cart");
+
+    window.location.href = "bedankt.html";
+}
+
+</script>
+
+</body>
+</html>

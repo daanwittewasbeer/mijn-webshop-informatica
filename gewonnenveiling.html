@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mijn Gewonnen Veilingen – Kamervliegers</title>
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f0f7fc;
+}
+
+/* ── Top bar ── */
+.bar {
+  background: #094f78;
+  color: rgba(255,255,255,.7);
+  padding: 6px 20px;
+  font-size: 12px;
+  text-align: center;
+}
+
+/* ── Nav ── */
+.topbar {
+  background: #fff;
+  border-bottom: 1px solid #d1e7f5;
+}
+.topbar ul {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  padding: 11px 0;
+}
+.topbar a {
+  text-decoration: none;
+  color: #0e7ab5;
+  font-size: 13px;
+  font-weight: 500;
+}
+.topbar a:hover { color: #094f78; }
+
+/* ── Header ── */
+.hero {
+  background: url("img_webshop/luchtachtergrond.jpg") center/cover;
+  position: relative;
+  color: #fff;
+  padding: 50px 20px;
+  text-align: center;
+}
+.hero::after {
+  content:"";
+  position:absolute;
+  inset:0;
+  background: rgba(9,79,120,0.65);
+}
+.hero > * { position: relative; z-index: 1; }
+
+.hero h1 {
+  font-size: 28px;
+}
+
+/* ── Content ── */
+.content {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 30px 20px;
+}
+
+/* ── Cards ── */
+.card {
+  background: #fff;
+  border: 1px solid #d1e7f5;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  padding: 18px;
+  box-shadow: 0 1px 6px rgba(0,0,0,.05);
+}
+
+.card h3 {
+  color: #094f78;
+  margin-bottom: 6px;
+}
+
+.price {
+  font-size: 20px;
+  font-weight: bold;
+  color: #094f78;
+  margin: 10px 0;
+}
+
+.meta {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 10px;
+}
+
+/* ── Timer ── */
+.timer {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.timer.ok {
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.timer.bad {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+/* ── Button ── */
+.btn {
+  margin-top: 12px;
+  background: #0e7ab5;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn:hover {
+  background: #094f78;
+}
+
+.empty {
+  text-align: center;
+  padding: 50px;
+  color: #6b7280;
+}
+</style>
+</head>
+
+<body>
+
+<div class="bar">✦ Kamervliegers – Mijn gewonnen veilingen</div>
+
+<nav class="topbar">
+  <ul>
+    <li><a href="homepage.html">Home</a></li>
+    <li><a href="veiling.html">Veiling</a></li>
+    <li><a href="winkelmand.html">Winkelmand</a></li>
+  </ul>
+</nav>
+
+<div class="hero">
+  <h1>🏆 Mijn Gewonnen Veilingen</h1>
+</div>
+
+<div class="content">
+  <div id="wins"></div>
+</div>
+
+<script type="module" src="script.js">
+
+const user =
+localStorage.getItem("currentUser") ||
+localStorage.getItem("currentName");
+
+function loadWins(){
+
+  const auctions =
+  JSON.parse(localStorage.getItem("kv_auctions") || "[]");
+
+  const wins =
+  auctions.filter(a => a.winner === user);
+
+  const box = document.getElementById("wins");
+
+  if(wins.length === 0){
+    box.innerHTML = `
+      <div class="card empty">
+        Je hebt nog geen veilingen gewonnen.
+      </div>`;
+    return;
+  }
+
+  box.innerHTML = wins.map(a => {
+
+    let leftText = "Geen deadline";
+    let expired = false;
+
+    if(a.paymentDeadline){
+
+      const diff = a.paymentDeadline - Date.now();
+
+      if(diff <= 0){
+        expired = true;
+        leftText = "❌ Betaaltermijn verlopen";
+      } else {
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        leftText = `⏳ ${h}u ${m}m resterend`;
+      }
+
+    }
+
+    return `
+      <div class="card">
+
+        <h3>${a.name}</h3>
+
+        <div class="meta">
+          ${a.description || ""}
+        </div>
+
+        <div class="price">
+          €${a.currentBid}
+        </div>
+
+        <div class="timer ${expired ? "bad" : "ok"}">
+          ${leftText}
+        </div>
+
+        ${
+          !expired ? `
+          <button class="btn"
+          onclick="addToCart(${a.id})">
+            Toevoegen aan winkelwagen
+          </button>
+          ` : ""
+        }
+
+      </div>
+    `;
+  }).join("");
+
+}
+
+function addToCart(id){
+
+  const auctions =
+  JSON.parse(localStorage.getItem("kv_auctions") || "[]");
+
+  const a = auctions.find(x => x.id === id);
+  if(!a) return;
+
+  let cart =
+  JSON.parse(localStorage.getItem("kamervliegers_cart") || "[]");
+
+  const exists = cart.find(x => x.id === id);
+
+  if(exists){
+    alert("Al in winkelwagen");
+    return;
+  }
+
+  cart.push({
+    id: a.id,
+    name: a.name,
+    price: a.currentBid,
+    qty: 1,
+    auctionWinner: true
+  });
+
+  localStorage.setItem("kamervliegers_cart", JSON.stringify(cart));
+
+  alert("Toegevoegd aan winkelwagen");
+
+}
+
+loadWins();
+setInterval(loadWins, 30000);
+
+</script>
+
+</body>
+</html>
