@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wachtwoord vergeten</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Outfit',sans-serif;
+}
+
+body{
+  height:100vh;
+  overflow:hidden;
+  background:#000;
+}
+
+#bg-video{
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  z-index:-2;
+}
+
+.overlay{
+  position:fixed;
+  inset:0;
+  background:linear-gradient(135deg, rgba(0,0,40,.45), rgba(0,60,90,.35));
+  z-index:-1;
+}
+
+.card{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  width:420px;
+  max-width:90%;
+  padding:35px;
+  border-radius:28px;
+  background:rgba(255,255,255,.13);
+  backdrop-filter:blur(20px);
+  color:white;
+  box-shadow:0 15px 50px rgba(0,0,0,.45);
+  z-index:10;
+}
+
+.hidden{
+  display:none;
+}
+
+h2{
+  text-align:center;
+  margin-bottom:14px;
+}
+
+.card-text{
+  text-align:center;
+  color:#ccc;
+  font-size:13.5px;
+  line-height:1.5;
+  margin-bottom:16px;
+}
+
+input{
+  width:100%;
+  padding:14px;
+  margin:8px 0;
+  border:none;
+  border-radius:12px;
+  outline:none;
+}
+
+.top-btn{
+  position:fixed;
+  top:20px;
+  padding:14px 22px;
+  border:none;
+  border-radius:12px;
+  background:#00bfff;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+  font-size:14px;
+  transition:.25s;
+  box-shadow:0 10px 25px rgba(0,0,0,.35);
+  width:auto;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+
+.top-btn:hover{
+  transform:scale(1.05);
+  filter:brightness(1.1);
+}
+
+button:hover{
+  transform:scale(1.03);
+  filter:brightness(1.1);
+}
+
+.switch{
+  text-align:center;
+  margin-top:10px;
+  color:#ccc;
+  cursor:pointer;
+}
+
+.home-btn{ left:20px; }
+.video-btn{ right:20px; }
+
+.card button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:14px;
+  background:linear-gradient(135deg,#00bfff,#007bff);
+  color:white;
+  font-weight:600;
+  font-size:15px;
+  cursor:pointer;
+  transition:0.25s ease;
+  box-shadow:0 10px 25px rgba(0,0,0,0.35);
+}
+
+.card button:hover{
+  transform:translateY(-2px) scale(1.02);
+  filter:brightness(1.1);
+  box-shadow:0 14px 30px rgba(0,0,0,0.45);
+}
+
+.hide-ui .card{ display:none; }
+.hide-ui .top-btn{ display:none; }
+
+.show-ui-btn{
+  position:fixed;
+  bottom:25px;
+  right:25px;
+  padding:14px 20px;
+  border:none;
+  border-radius:30px;
+  background:#00bfff;
+  color:white;
+  cursor:pointer;
+  display:none;
+  z-index:9999;
+}
+
+.hide-ui .show-ui-btn{ display:block; }
+
+</style>
+</head>
+
+<body>
+
+<button class="top-btn home-btn" onclick="location.href='homepage.html'">🏠 Home</button>
+<button class="top-btn video-btn" onclick="toggleUI()">👁 Video</button>
+<button id="showBtn" class="show-ui-btn" onclick="toggleUI()">⬅ Terug</button>
+
+<video autoplay muted loop playsinline id="bg-video">
+  <source src="img_webshop/reg.webm" type="video/webm">
+</video>
+
+<div class="overlay"></div>
+
+<!-- STAP 1: E-MAILADRES CONTROLEREN -->
+<div class="card" id="reset-card">
+  <h2>Wachtwoord vergeten</h2>
+  <p class="card-text">Vul je e-mailadres in. Klopt dit met een bestaand account, dan kun je direct een nieuw wachtwoord instellen.</p>
+
+  <input id="reset-email" type="email" placeholder="E-mail">
+
+  <button onclick="checkEmail()">Controleren</button>
+
+  <div class="switch" onclick="location.href='registreren2.html'">Terug naar inloggen</div>
+</div>
+
+<!-- STAP 2: NIEUW WACHTWOORD INSTELLEN -->
+<div class="card hidden" id="newpass-card">
+  <h2>Nieuw wachtwoord</h2>
+  <p class="card-text">Account gevonden voor <strong id="found-email"></strong>. Kies een nieuw wachtwoord.</p>
+
+  <input id="new-pass" type="password" placeholder="Nieuw wachtwoord">
+  <input id="new-pass2" type="password" placeholder="Herhaal nieuw wachtwoord">
+
+  <div class="switch" onclick="location.href='registreren2.html'">Terug naar inloggen</div>
+</div>
+
+<!-- STAP 3: GELUKT -->
+<div class="card hidden" id="done-card">
+  <h2>Gelukt! ✅</h2>
+  <p class="card-text">Je wachtwoord is gewijzigd. Je kunt nu inloggen met je nieuwe wachtwoord.</p>
+
+  <button onclick="location.href='registreren2.html'">Naar inloggen</button>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+function getUsers() {
+  try { return JSON.parse(localStorage.getItem('users') || '{}'); }
+  catch { return {}; }
+}
+
+function saveUsers(users) {
+  localStorage.setItem('users', JSON.stringify(users));
+}
+
+let resetEmail = null;
+
+function checkEmail() {
+  const email = $('reset-email').value.trim().toLowerCase();
+
+  if (!email) {
+    alert('Vul je e-mailadres in.');
+    return;
+  }
+
+  const users = getUsers();
+
+  if (!users[email]) {
+    alert('Er is geen account gevonden met dit e-mailadres.');
+    return;
+  }
+
+  resetEmail = email;
+  $('found-email').textContent = email;
+
+  $('reset-card').classList.add('hidden');
+  $('newpass-card').classList.remove('hidden');
+  $('done-card').classList.add('hidden');
+}
+
+function resetPassword() {
+  const pass = $('new-pass').value;
+  const pass2 = $('new-pass2').value;
+
+  if (!pass || !pass2) {
+    alert('Vul beide wachtwoordvelden in.');
+    return;
+  }
+
+  if (pass !== pass2) {
+    alert('Wachtwoorden komen niet overeen.');
+    return;
+  }
+
+  const users = getUsers();
+
+  if (!resetEmail || !users[resetEmail]) {
+    alert('Er ging iets mis, probeer het opnieuw.');
+    showResetStart();
+    return;
+  }
+
+  users[resetEmail].password = btoa(pass);
+  saveUsers(users);
+
+  $('newpass-card').classList.add('hidden');
+  $('done-card').classList.remove('hidden');
+}
+
+function showResetStart() {
+  $('reset-card').classList.remove('hidden');
+  $('newpass-card').classList.add('hidden');
+  $('done-card').classList.add('hidden');
+  $('reset-email').value = '';
+  resetEmail = null;
+}
+
+function toggleUI() {
+  document.body.classList.toggle('hide-ui');
+  $('showBtn').style.display = document.body.classList.contains('hide-ui') ? 'block' : 'none';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  if (!$('reset-card').classList.contains('hidden'))      checkEmail();
+  else if (!$('newpass-card').classList.contains('hidden')) resetPassword();
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Account</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Outfit',sans-serif;
+}
+
+body{
+  height:100vh;
+  overflow:hidden;
+  background:#000;
+}
+
+#bg-video{
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  z-index:-2;
+}
+
+.overlay{
+  position:fixed;
+  inset:0;
+  background:linear-gradient(135deg, rgba(0,0,40,.45), rgba(0,60,90,.35));
+  z-index:-1;
+}
+
+.card{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  width:420px;
+  max-width:90%;
+  padding:35px;
+  border-radius:28px;
+  background:rgba(255,255,255,.13);
+  backdrop-filter:blur(20px);
+  color:white;
+  box-shadow:0 15px 50px rgba(0,0,0,.45);
+  z-index:10;
+}
+
+.hidden{ display:none; }
+
+h2{ text-align:center; margin-bottom:20px; }
+
+input{
+  width:100%;
+  padding:14px;
+  margin:8px 0;
+  border:none;
+  border-radius:12px;
+  outline:none;
+}
+
+.top-btn{
+  position:fixed;
+  top:20px;
+  padding:14px 22px;
+  border:none;
+  border-radius:12px;
+  background:#00bfff;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+  font-size:14px;
+  transition:.25s;
+  box-shadow:0 10px 25px rgba(0,0,0,.35);
+  width:auto;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+
+.top-btn:hover{ transform:scale(1.05); filter:brightness(1.1); }
+button:hover{ transform:scale(1.03); filter:brightness(1.1); }
+
+.switch{ text-align:center; margin-top:10px; color:#ccc; cursor:pointer; }
+
+#strength{ font-size:13px; margin-top:5px; min-height:18px; }
+
+.profile-pic{
+  width:130px;
+  height:130px;
+  border-radius:50%;
+  object-fit:cover;
+  display:block;
+  margin:auto;
+  border:3px solid white;
+}
+
+.home-btn{ left:20px; }
+.video-btn{ right:20px; }
+
+.card button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:14px;
+  background:linear-gradient(135deg,#00bfff,#007bff);
+  color:white;
+  font-weight:600;
+  font-size:15px;
+  cursor:pointer;
+  transition:0.25s ease;
+  box-shadow:0 10px 25px rgba(0,0,0,0.35);
+}
+
+.card button:hover{
+  transform:translateY(-2px) scale(1.02);
+  filter:brightness(1.1);
+  box-shadow:0 14px 30px rgba(0,0,0,0.45);
+}
+
+.hide-ui .card{ display:none; }
+.hide-ui .top-btn{ display:none; }
+
+.show-ui-btn{
+  position:fixed;
+  bottom:25px;
+  right:25px;
+  padding:14px 20px;
+  border:none;
+  border-radius:30px;
+  background:#00bfff;
+  color:white;
+  cursor:pointer;
+  display:none;
+  z-index:9999;
+}
+
+.hide-ui .show-ui-btn{ 
+    display:block; 
+}
+
+.card button.btn-delete{
+  background:linear-gradient(135deg,#ff4d6d,#c9184a);
+}
+
+.card button.btn-delete:hover{
+  box-shadow:0 14px 30px rgba(255,77,109,0.45);
+}
+</style>
+</head>
+
+<body>
+
+<button class="top-btn home-btn" onclick="location.href='homepage.html'">🏠 Home</button>
+<button class="top-btn video-btn" onclick="toggleUI()">👁 Video</button>
+<button id="showBtn" class="show-ui-btn" onclick="toggleUI()">⬅ Terug</button>
+
+<video autoplay muted loop playsinline id="bg-video">
+  <source src="img_webshop/reg.webm" type="video/webm">
+</video>
+
+<div class="overlay"></div>
+
+<!-- REGISTER -->
+<div class="card" id="reg-card">
+  <h2>Registreren</h2>
+
+  <input id="reg-name" placeholder="Naam">
+  <input id="reg-email" type="email" placeholder="E-mail">
+  <input id="reg-pass" type="password" placeholder="Wachtwoord" oninput="checkStrength()">
+  <input id="reg-pass2" type="password" placeholder="Herhaal wachtwoord">
+
+  <div id="strength"></div>
+
+  <button onclick="register()">Account maken</button>
+
+  <div class="switch" onclick="showLogin()">Al een account? Login</div>
+</div>
+
+<!-- LOGIN -->
+<div class="card hidden" id="login-card">
+  <h2>Login</h2>
+
+  <input id="login-email" type="email" placeholder="E-mail">
+  <input id="login-pass" type="password" placeholder="Wachtwoord">
+
+  <button onclick="login()">Inloggen</button>
+
+<div class="switch" onclick="showReg()">Registreren</div>
+<div class="switch" onclick="location.href='vergetenw8woord.html'">Wachtwoord vergeten?</div>
+</div>
+
+<!-- ACCOUNT -->
+<div class="card hidden" id="success-card">
+  <h2>Mijn account</h2>
+
+  <img class="profile-pic" id="avatar" src="https://ui-avatars.com/api/?name=User">
+
+  <input type="file" id="fileInput" accept="image/*" onchange="uploadPic()" style="margin-top:16px">
+
+  <p style="margin-top:14px"><b>Naam:</b> <span id="user-name"></span></p>
+  <p><b>Email:</b> <span id="user-email"></span></p>
+
+  <button onclick="logout()" style="margin-top:14px">Uitloggen</button>
+  <button class="btn-delete" onclick="deleteAccount()" style="margin-top:10px">Account verwijderen</button>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+function getUsers() {
+  try { return JSON.parse(localStorage.getItem('users') || '{}'); }
+  catch { return {}; }
+}
+
+function saveUsers(users) {
+  localStorage.setItem('users', JSON.stringify(users));
+}
+
+function showReg() {
+  $('reg-card').classList.remove('hidden');
+  $('login-card').classList.add('hidden');
+  $('success-card').classList.add('hidden');
+}
+
+function showLogin() {
+  $('reg-card').classList.add('hidden');
+  $('login-card').classList.remove('hidden');
+  $('success-card').classList.add('hidden');
+}
+
+function showSuccess(email) {
+  $('reg-card').classList.add('hidden');
+  $('login-card').classList.add('hidden');
+  $('success-card').classList.remove('hidden');
+
+  const users = getUsers();
+  const user = users[email] || {};
+
+  $('user-name').textContent = user.naam || email.split('@')[0];
+  $('user-email').textContent = email;
+  $('avatar').src = user.avatar || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(email) + '&background=00bfff&color=fff&size=128');
+}
+
+function checkStrength() {
+  const val = $('reg-pass').value || '';
+  const el = $('strength');
+  if (!el) return;
+
+  let score = 0;
+  if (val.length > 5) score++;
+  if (val.length > 8) score++;
+  if (/[A-Z]/.test(val)) score++;
+  if (/[0-9]/.test(val)) score++;
+  if (/[^A-Za-z0-9]/.test(val)) score++;
+
+  const levels = ['Zwak 🔴', 'Oké 🟡', 'Goed 🟢', 'Sterk 💪', 'Heel sterk 🔥'];
+  el.textContent = val ? levels[score] : '';
+}
+
+function register() {
+  const naam  = $('reg-name').value.trim();
+  const email = $('reg-email').value.trim().toLowerCase();
+  const pass  = $('reg-pass').value;
+  const pass2 = $('reg-pass2').value;
+
+  if (!naam || !email || !pass || !pass2) {
+    alert('Vul alle velden in.');
+    return;
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    alert('Voer een geldig e-mailadres in.');
+    return;
+  }
+
+  if (pass !== pass2) {
+    alert('Wachtwoorden komen niet overeen.');
+    return;
+  }
+
+  const users = getUsers();
+
+  if (users[email]) {
+    alert('Dit e-mailadres is al geregistreerd.');
+    return;
+  }
+
+  const defaultAvatar = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(naam) + '&background=00bfff&color=fff&size=128';
+
+  users[email] = {
+    password: btoa(pass),
+    naam: naam,
+    avatar: defaultAvatar
+  };
+
+  saveUsers(users);
+
+  localStorage.setItem('currentUser', email);
+  localStorage.setItem('currentName', naam);
+
+  showSuccess(email);
+}
+
+function login() {
+  const email = $('login-email').value.trim().toLowerCase();
+  const pass  = $('login-pass').value;
+
+  if (!email || !pass) {
+    alert('Vul alle velden in.');
+    return;
+  }
+
+  const users = getUsers();
+
+  if (!users[email] || users[email].password !== btoa(pass)) {
+    alert('E-mailadres of wachtwoord is onjuist.');
+    return;
+  }
+
+  localStorage.setItem('currentUser', email);
+  localStorage.setItem('currentName', users[email].naam || '');
+
+  showSuccess(email);
+}
+
+function logout() {
+  localStorage.removeItem('currentUser');
+  localStorage.removeItem('currentName');
+  showLogin();
+}
+
+function deleteAccount() {
+  const email = localStorage.getItem('currentUser');
+  if (!email) return;
+
+  const sure = confirm('Weet je zeker dat je je account permanent wilt verwijderen? Dit kan niet ongedaan worden gemaakt.');
+  if (!sure) return;
+
+  const users = getUsers();
+  delete users[email];
+  saveUsers(users);
+
+  localStorage.removeItem('currentUser');
+  localStorage.removeItem('currentName');
+
+  showReg();
+}
+
+function uploadPic() {
+  const file = $('fileInput').files[0];
+  if (!file) return;
+
+  const email = localStorage.getItem('currentUser');
+  if (!email) return;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    const users = getUsers();
+    if (!users[email]) return;
+
+    users[email].avatar = e.target.result;
+    saveUsers(users);
+
+    $('avatar').src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function toggleUI() {
+  document.body.classList.toggle('hide-ui');
+  $('showBtn').style.display = document.body.classList.contains('hide-ui') ? 'block' : 'none';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  if (!$('reg-card').classList.contains('hidden'))     register();
+  else if (!$('login-card').classList.contains('hidden')) login();
+});
+
+const current = localStorage.getItem('currentUser');
+if (current) {
+  showSuccess(current);
+}
+</script>
+
+</body>
+</html>

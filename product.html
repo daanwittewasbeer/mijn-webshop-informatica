@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>Product Detail</title>
+<style>
+body { font-family: Arial, sans-serif; padding: 20px; background: #f0f8ff; margin: 0; }
+
+.container { max-width: 1200px; margin: 0 auto; }
+
+.content { display: flex; flex-wrap: wrap; gap: 30px; align-items: flex-start; }
+
+.image-wrapper {
+  display: flex; flex-direction: column; gap: 10px;
+  max-width: 400px; width: 100%;
+}
+.image-wrapper img {
+  width: 100%; height: auto;
+  border: 2px solid black; border-radius: 10px;
+}
+
+.tekst { flex: 1; min-width: 300px; }
+.tekst h2 { margin-top: 0; }
+.tekst p { margin: 10px 0; line-height: 1.6; }
+.tekst #description { display: block; white-space: normal; word-wrap: break-word; line-height: 1.6; }
+
+.tekst button {
+  margin-top: 20px; padding: 12px 20px;
+  border-radius: 5px; border: 1px solid black;
+  cursor: pointer; background-color: #4CAF50;
+  color: white; font-size: 16px;
+}
+
+@media(max-width: 768px) {
+  .content { flex-direction: column; align-items: center; }
+  .tekst { width: 100%; }
+  .image-wrapper { width: 80%; }
+}
+
+.cart-button {
+  position: fixed; top: 20px; right: 20px;
+  background: rgba(0,110,147,0.9); color: white; text-decoration: none;
+  padding: 12px 20px; border-radius: 30px;
+  font-weight: bold; font-size: 16px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 1000; transition: all 0.3s ease;
+}
+.cart-button:hover { background: rgb(0,140,190); transform: scale(1.08); box-shadow: 0 0 20px rgba(0,140,190,0.8); }
+
+.flying-dot { position: fixed; width: 120px; height: 120px; z-index: 9999; pointer-events: none; }
+.cart-button.pop { transform: scale(1.2); }
+.explosion {
+  position: fixed; width: 10px; height: 10px;
+  background: rgba(255,153,43,0.8); border-radius: 50%;
+  pointer-events: none; z-index: 9999; animation: explode 0.6s ease-out forwards;
+}
+@keyframes explode {
+  0%   { transform: scale(5);  opacity: 1; }
+  100% { transform: scale(20); opacity: 0; }
+}
+</style>
+</head>
+<body>
+
+<a href="winkelmand.html" class="cart-button">🛒 Winkelmand <span id="cart-count">0</span></a>
+<a href="homepage.html" class="cart-button" style="margin-top:50px;">homepage</a>
+<a href="javascript:history.back()" class="cart-button" style="margin-top:100px;">← Terug</a>
+
+<div class="container">
+  <div class="content">
+    <div class="image-wrapper">
+      <img class="hover-image" src="" alt="Hover Afbeelding">
+      <img id="foto" src="" alt="Productfoto">
+    </div>
+    <div class="tekst">
+      <h2 id="model"></h2>
+      <p><strong>Merk:</strong> <span id="brand"></span></p>
+      <p><strong>Schaal:</strong> <span id="scale"></span></p>
+      <p><strong>Prijs:</strong> €<span id="price"></span></p>
+      <p><strong>Beschrijving:</strong></p>
+      <p id="description"></p>
+      <button class="add-to-cart">In winkelwagen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase + gedeelde functies -->
+<script type="module" src="script.js"></script>
+
+<!-- Pagina-specifieke code -->
+<script>
+  const params      = new URLSearchParams(window.location.search);
+  const model       = params.get("model")       || "Onbekend model";
+  const brand       = params.get("brand")       || "Onbekend merk";
+  const scale       = params.get("scale")       || "-";
+  const price       = params.get("price")       || "0";
+  const image       = params.get("image")       || "";
+  const hoverImage  = params.get("hover")       || "";
+  const description = params.get("description") || "Geen beschrijving beschikbaar.";
+
+  document.getElementById("model").textContent       = model;
+  document.getElementById("brand").textContent       = brand;
+  document.getElementById("scale").textContent       = scale;
+  document.getElementById("price").textContent       = price;
+  document.getElementById("foto").src                = image;
+  document.querySelector(".hover-image").src         = hoverImage;
+  document.getElementById("description").textContent = description;
+
+  /* Cart-teller laden */
+  try {
+    const saved = JSON.parse(localStorage.getItem("kamervliegers_cart") || "[]");
+    document.getElementById("cart-count").textContent =
+      saved.reduce((s, i) => s + (i.qty || 1), 0);
+  } catch(e) {}
+
+  /* Knop koppelen — addToCart komt uit script.js via window.addToCart */
+  document.querySelector(".add-to-cart").addEventListener("click", function () {
+    if (typeof window.addToCart === "function") {
+      window.addToCart(model, parseFloat(price), image, this);
+    }
+  });
+</script>
+
+</body>
+</html>

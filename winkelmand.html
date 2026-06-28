@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>Winkelwagen Kamervliegers</title>
+<link rel="icon" type="image/png" href="photos/favicon.png">
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f5f3ef;
+  color: #1a1a1a;
+}
+
+/* BAR */
+.bar {
+  background: linear-gradient(180deg,  #15b9c2, #12005a);
+  color: white;
+  padding: 8px;
+  text-align: center;
+  font-size: 12px;
+}
+
+/* NAV */
+.topbar ul {
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+  list-style: none;
+  padding: 12px;
+  background: white;
+}
+
+.topbar a {
+  text-decoration: none;
+  color: #333;
+}
+
+/* HERO */
+.small-hero {
+  height: 200px;
+  position: relative;
+  background: linear-gradient(135deg, #0082aa, #12005a);
+}
+
+/* TITLE */
+h1 {
+  text-align: center;
+  margin: 25px 0;
+}
+
+/* CART */
+.cart-container {
+  max-width: 900px;
+  margin: auto;
+  padding: 0 20px;
+}
+
+.cart-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: white;
+  padding: 15px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+}
+
+.cart-item img {
+  width: 70px;
+  height: 70px;
+  object-fit: cover;
+}
+
+.qty-controls button {
+  padding: 5px 10px;
+  margin: 0 5px;
+}
+
+.cart-summary {
+  margin-top: 20px;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.checkout-btn {
+  width: 100%;
+  padding: 14px 18px;
+  margin-top: 15px;
+
+  text-align: center;
+  text-decoration: none;
+
+  background: linear-gradient(135deg, #332270, #003ca4);
+  color: #ffffff;
+
+  border: none;
+  border-radius: 12px;
+
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+
+  cursor: pointer;
+
+  box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.checkout-btn:hover {
+  transform: translateY(-20px) scale(2.5);
+  box-shadow: 0 30px 75px rgb(201, 120, 0);
+  filter: brightness(1.25);
+}
+
+.checkout-btn:active {
+  transform: scale(0.98);
+}
+
+.cart-empty {
+  text-align: center;
+  padding: 60px;
+}
+
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #5a3b00;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  opacity: 0;
+  transition: 0.3s;
+}
+
+.toast.show {
+  opacity: 1;
+}
+</style>
+</head>
+
+<body>
+
+<div class="bar">Gratis bezorging vanaf €35</div>
+
+<nav class="topbar">
+  <ul>
+    <li><a href="homepage.html">Home</a></li>
+    <li><a href="airbus.html">Airbus</a></li>
+    <li><a href="boeing.html">Boeing</a></li>
+    <li><a href="mcdonalds.html">McDonnell Douglas</a></li>
+    <li><a href="veiling.html">veiling</a></li>
+  </ul>
+</nav>
+
+<div class="small-hero"></div>
+
+<h1>Jouw winkelwagen</h1>
+
+<div class="cart-container">
+  <div id="cart-content"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================
+   CART DATA
+========================= */
+function getCart() {
+  return JSON.parse(localStorage.getItem("kamervliegers_cart") || "[]");
+}
+
+function saveCart(cart) {
+  localStorage.setItem("kamervliegers_cart", JSON.stringify(cart));
+}
+
+/* =========================
+   RENDER
+========================= */
+function render() {
+  const el = document.getElementById("cart-content");
+  if (!el) return;
+
+  const cart = getCart();
+
+  if (cart.length === 0) {
+    el.innerHTML = `
+      <div class="cart-empty">
+        🛒<br><br>
+        Je winkelwagen is leeg
+      </div>
+    `;
+    return;
+  }
+
+  let total = 0;
+
+  el.innerHTML = cart.map((item, i) => {
+    total += item.price * item.qty;
+
+    return `
+      <div class="cart-item">
+        <img src="${item.image}">
+        <div style="flex:1">
+          <b>${item.name}</b><br>
+          €${item.price}
+        </div>
+
+        <div class="qty-controls">
+          <button onclick="changeQty(${i}, -1)">-</button>
+          ${item.qty}
+          <button onclick="changeQty(${i}, 1)">+</button>
+        </div>
+
+        <b>€${(item.price * item.qty).toFixed(2)}</b>
+
+        <button onclick="removeItem(${i})">x</button>
+      </div>
+    `;
+  }).join("") + `
+    <div class="cart-summary">
+      <b>Totaal: €${total.toFixed(2)}</b>
+      <a class="checkout-btn" href="checkout.html">Afrekenen</a>
+    </div>
+  `;
+}
+
+/* =========================
+   ACTIONS
+========================= */
+function changeQty(i, delta) {
+  const cart = getCart();
+
+  if (!cart[i]) return;
+
+  cart[i].qty += delta;
+
+  if (cart[i].qty <= 0) {
+    cart.splice(i, 1);
+  }
+
+  saveCart(cart);
+  render();
+}
+
+function removeItem(i) {
+  const cart = getCart();
+  cart.splice(i, 1);
+  saveCart(cart);
+  render();
+}
+
+/* =========================
+   TOAST
+========================= */
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+
+  setTimeout(() => {
+    t.classList.remove("show");
+  }, 2000);
+}
+
+/* INIT */
+render();
+</script>
+
+</body>
+</html>

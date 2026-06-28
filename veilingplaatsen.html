@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>Veiling item toevoegen</title>
+<style>
+body {
+  font-family: Arial;
+  background:#f0f7fc;
+  padding:30px;
+}
+
+.card {
+  max-width:520px;
+  margin:auto;
+  background:white;
+  padding:20px;
+  border-radius:12px;
+  border:1px solid #d1e7f5;
+  box-shadow:0 2px 10px rgba(0,0,0,0.05);
+}
+
+h2 {
+  color:#094f78;
+  margin-bottom:15px;
+}
+
+input, textarea {
+  width:100%;
+  padding:10px;
+  margin-bottom:10px;
+  border:1px solid #d1e7f5;
+  border-radius:8px;
+  font-size:14px;
+}
+
+label {
+  font-size:12px;
+  color:#6b7280;
+}
+
+button {
+  width:100%;
+  padding:12px;
+  background:#0e7ab5;
+  color:white;
+  border:none;
+  border-radius:8px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+button:hover {
+  background:#094f78;
+}
+
+small {
+  color:#6b7280;
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h2>✈ Veiling item toevoegen</h2>
+
+  <input id="name" placeholder="Product naam">
+  <textarea id="desc" placeholder="Beschrijving"></textarea>
+
+  <input id="start" type="number" placeholder="Startprijs (€)">
+  <input id="buy" type="number" placeholder="Koop nu prijs (€)">
+
+  <label>📸 Foto uploaden</label>
+  <input id="image" type="file" accept="image/*">
+
+  <label>⏱ Veiling loopt tot (max 7 dagen vooruit)</label>
+  <input id="enddate" type="datetime-local">
+
+  <small>Maximaal 7 dagen vanaf nu instellen</small>
+
+  <button onclick="addAuction()">Veiling plaatsen</button>
+</div>
+
+<script type="module" src="script.js">
+function addAuction() {
+
+  const file = document.getElementById("image").files[0];
+  const endDateInput = document.getElementById("enddate").value;
+
+  if (!file) {
+    alert("Kies een afbeelding");
+    return;
+  }
+
+  if (!endDateInput) {
+    alert("Kies een eindtijd");
+    return;
+  }
+
+  const endTime = new Date(endDateInput).getTime();
+  const now = Date.now();
+  const max = now + (7 * 24 * 60 * 60 * 1000); // 7 dagen
+
+  if (endTime > max) {
+    alert("Veiling mag maximaal 7 dagen duren!");
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = function(e) {
+
+    let auctions = JSON.parse(localStorage.getItem("kv_auctions") || "[]");
+
+    const newItem = {
+      id: Date.now(),
+      name: document.getElementById("name").value,
+      description: document.getElementById("desc").value,
+      startBid: Number(document.getElementById("start").value),
+      currentBid: Number(document.getElementById("start").value),
+      buyNowPrice: Number(document.getElementById("buy").value),
+      img: e.target.result,
+      bidCount: 0,
+      ended: false,
+
+      // ⏱ tijd in seconden (voor jouw veiling systeem)
+      endsIn: Math.floor((endTime - now) / 1000)
+    };
+
+    if (!newItem.name || !newItem.startBid) {
+      alert("Vul naam en startprijs in");
+      return;
+    }
+
+    auctions.unshift(newItem);
+
+    localStorage.setItem("kv_auctions", JSON.stringify(auctions));
+
+    alert("Veiling toegevoegd!");
+    window.location.href = "veiling.html";
+  };
+
+  reader.readAsDataURL(file);
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Veiling – Kamervliegers</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f0f7fc;
+  min-height: 100vh;
+}
+
+/* ── Top bar ── */
+.bar {
+  background: #094f78;
+  color: rgba(255,255,255,.7);
+  padding: 6px 20px;
+  font-size: 12px;
+  text-align: center;
+  letter-spacing: .5px;
+}
+
+/* ── Nav ── */
+.topbar {
+  background: #fff;
+  border-bottom: 1px solid #d1e7f5;
+}
+.topbar ul {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  padding: 11px 0;
+}
+.topbar a {
+  text-decoration: none;
+  color: #0e7ab5;
+  font-size: 13px;
+  font-weight: 500;
+  transition: color .2s;
+}
+.topbar a:hover { color: #094f78; }
+
+/* ── Hero ── */
+.hero {
+  background: url("img_webshop/luchtachtergrond.jpg") center/cover;
+  position: relative;
+  color: #fff;
+  padding: 60px 24px 40px;
+  text-align: center;
+  overflow: hidden;
+}
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(9, 79, 120, 0.65);
+}
+.hero > * { position: relative; z-index: 1; }
+
+.hero h1 {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -.5px;
+  margin-bottom: 8px;
+}
+.hero p {
+  font-size: 15px;
+  opacity: .85;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.cart-btn {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  background: rgba(255,255,255,.15);
+  color: #fff;
+  text-decoration: none;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 14px;
+  border: 1px solid rgba(255,255,255,.3);
+  transition: all .2s;
+  z-index: 2;
+}
+.cart-btn:hover { background: rgba(255,255,255,.25); }
+
+.back-btn {
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  background: rgba(255,255,255,.15);
+  color: #fff;
+  text-decoration: none;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 14px;
+  border: 1px solid rgba(255,255,255,.3);
+  transition: all .2s;
+  z-index: 2;
+}
+.back-btn:hover { background: rgba(255,255,255,.25); }
+
+.user-pill {
+  display: none;
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  background: rgba(255,255,255,.15);
+  color: #fff;
+  padding: 7px 16px;
+  border-radius: 30px;
+  font-size: 12px;
+  border: 1px solid rgba(255,255,255,.3);
+  z-index: 2;
+}
+
+/* ── Gate (niet ingelogd) ── */
+.gate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  padding: 60px 20px;
+}
+
+.gate-card {
+  background: #fff;
+  border: 1px solid #d1e7f5;
+  border-radius: 14px;
+  padding: 40px 44px;
+  text-align: center;
+  max-width: 380px;
+  width: 100%;
+  box-shadow: 0 4px 20px rgba(14,122,181,.1);
+}
+
+.gate-card .plane { font-size: 54px; margin-bottom: 14px; }
+.gate-card h2 { font-size: 20px; color: #094f78; margin-bottom: 10px; }
+.gate-card p { font-size: 13px; color: #6b7280; margin-bottom: 22px; line-height: 1.6; }
+
+.gate-btn {
+  display: inline-block;
+  background: #0e7ab5;
+  color: #fff;
+  padding: 12px 32px;
+  border-radius: 30px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: background .2s;
+}
+.gate-btn:hover { background: #094f78; }
+
+/* ── Main content ── */
+.content {
+  padding: 28px 20px 50px;
+  max-width: 1040px;
+  margin: 0 auto;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #094f78;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Auction cards ── */
+.auctions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 18px;
+}
+
+.auction-card {
+  background: #fff;
+  border: 1px solid #d1e7f5;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  transition: box-shadow .2s, transform .2s;
+}
+.auction-card:hover {
+  box-shadow: 0 6px 20px rgba(14,122,181,.15);
+  transform: translateY(-2px);
+}
+
+.auction-img {
+  width: 100%;
+  height: 170px;
+  object-fit: contain;
+  background: #f0f7fc;
+  border-bottom: 1px solid #e8f2fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 72px;
+}
+/* Als je echte afbeeldingen hebt: */
+.auction-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.auction-body { padding: 14px 16px 18px; }
+.auction-name { font-size: 14px; font-weight: 700; color: #111827; margin-bottom: 2px; }
+.auction-meta { font-size: 11px; color: #6b7280; margin-bottom: 12px; }
+
+.bid-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 10px;
+}
+.bid-label { font-size: 11px; color: #6b7280; margin-bottom: 2px; }
+.bid-amount { font-size: 22px; font-weight: 700; color: #094f78; }
+.bid-count { font-size: 11px; color: #9ca3af; }
+
+/* ── Timer ── */
+.timer {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  display: inline-block;
+  margin-bottom: 12px;
+}
+.timer.active { background: #ecfdf5; color: #065f46; }
+.timer.soon   { background: #fffbeb; color: #92400e; }
+.timer.ended  { background: #fef2f2; color: #991b1b; }
+
+/* ── Badges ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 9px;
+  border-radius: 20px;
+}
+.badge-win    { background: #ecfdf5; color: #065f46; }
+.badge-out    { background: #fef2f2; color: #991b1b; }
+.badge-active { background: #e6f4fb; color: #094f78; }
+
+/* ── Bid input ── */
+.bid-input-row { display: flex; gap: 7px; margin-top: 10px; }
+.bid-input-row input {
+  flex: 1;
+  padding: 9px 11px;
+  border: 1px solid #d1e7f5;
+  border-radius: 8px;
+  font-size: 13px;
+  outline: none;
+  transition: border .15s;
+}
+.bid-input-row input:focus { border-color: #0e7ab5; }
+
+.bid-btn {
+  background: #0e7ab5;
+  color: #fff;
+  border: none;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .2s;
+  white-space: nowrap;
+}
+.bid-btn:hover { background: #094f78; }
+
+/* ── Mijn biedingen ── */
+.my-bids-section { margin-top: 32px; }
+
+.bids-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.bids-table th {
+  padding: 9px 14px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  background: #f0f7fc;
+  border-bottom: 1px solid #d1e7f5;
+}
+.bids-table td {
+  padding: 13px 14px;
+  border-bottom: 1px solid #e8f2fa;
+  color: #374151;
+  vertical-align: middle;
+}
+.bids-table tr:last-child td { border-bottom: none; }
+.bids-table tr:hover td { background: #f7fbfe; }
+
+/* ── Toast ── */
+.toast-msg {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(70px);
+  background: #094f78;
+  color: #fff;
+  padding: 11px 26px;
+  border-radius: 30px;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 4px 20px rgba(0,0,0,.2);
+  transition: transform .3s, opacity .3s;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 9999;
+  white-space: nowrap;
+}
+.toast-msg.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+/* ── Warn banner ── */
+.warn-banner {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 12px;
+  color: #78350f;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+/* ── Footer ── */
+.footer {
+  background: #094f78;
+  color: rgba(255,255,255,.4);
+  text-align: center;
+  padding: 28px;
+  font-size: 11px;
+  margin-top: 50px;
+}
+
+@media (max-width: 600px) {
+  .auctions-grid { grid-template-columns: 1fr; }
+  .hero h1 { font-size: 22px; }
+  .gate-card { padding: 28px 22px; }
+}
+</style>
+</head>
+<body>
+
+<div class="bar">✦ Kamervliegers Veiling — Bied op exclusieve modellen &nbsp;|&nbsp; Live afteltimers &nbsp;|&nbsp; Veilig betalen ✦</div>
+
+<nav class="topbar">
+  <ul>
+    <li><a href="homepage.html">Home</a></li>
+    <li><a href="airbus.html">Airbus modellen</a></li>
+    <li><a href="boeing.html">Boeing modellen</a></li>
+    <li><a href="mcdonalds.html">Mcdonnell Douglas</a></li>
+    <li><a href="veiling.html" style="color:#094f78;font-weight:700">Veiling</a></li>
+  </ul>
+</nav>
+
+<div class="hero">
+  <a href="homepage.html" class="back-btn">← Terug</a>
+  <a href="winkelmand.html" class="cart-btn">🛒 Winkelmand <span id="cart-count-hero">0</span></a>
+  <div class="user-pill" id="user-pill"></div>
+  <h1>✈ Live Veiling</h1>
+  <p>Bied op zeldzame en exclusieve modelvliegtuigen. De hoogste bieder wint het model!</p>
+</div>
+
+<!-- GATE: niet ingelogd -->
+<div id="gate" class="gate">
+  <div class="gate-card">
+    <div class="plane">✈</div>
+    <h2>Inloggen vereist</h2>
+    <p>Om mee te bieden op veilingartikelen moet je ingelogd zijn. Registreer je of log in via de webshop.</p>
+    <a href="registreren.html" class="gate-btn">Inloggen / Registreren</a>
+    <p style="margin-top:16px;font-size:12px;color:#9ca3af">
+      Al ingelogd? <button onclick="checkLogin()" style="background:none;border:none;color:#0e7ab5;cursor:pointer;font-size:12px;font-weight:600">Klik hier om de veiling te openen →</button>
+    </p>
+  </div>
+</div>
+
+<!-- VEILING (zichtbaar na inloggen) -->
+<div id="auction-area" style="display:none">
+  <div class="content">
+    <div class="warn-banner">
+      ℹ️ Biedingen worden opgeslagen in je browser. Zodra de timer op nul staat, wordt de veiling gesloten en kan er niet meer worden geboden.
+    </div>
+
+    <div class="section-title">🔨 Actieve veilingen</div>
+    <div class="auctions-grid" id="auctions-grid"></div>
+
+    <div class="my-bids-section">
+      <div class="section-title">📋 Mijn biedingen</div>
+      <div style="background:#fff;border:1px solid #d1e7f5;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+        <div id="my-bids-body"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">© 2026 Kamervliegers — Uw Modelvliegtuigen specialist</div>
+<div class="toast-msg" id="toast"></div>
+
+<script type="module" src="script.js">
+/* ── Veilingdata ── */
+/* Voeg hier je eigen afbeeldingen toe door "emoji" te vervangen met "img" */
+const DEFAULT_AUCTIONS = [
+  {
+    id: 1,
+    name: "KLM Boeing 747-400 (Limitierte editie)",
+    scale: "1:200",
+    brand: "Herpa Wings",
+    emoji: "✈",
+    img: "",
+    startBid: 45,
+    currentBid: 78,
+    bidCount: 6,
+    endsIn: 3600 * 2 + 1234,
+    ended: false
+  },
+  {
+    id: 2,
+    name: "Emirates A380 Expo 2020 livery",
+    scale: "1:400",
+    brand: "NG Models",
+    emoji: "🛫",
+    img: "",
+    startBid: 60,
+    currentBid: 135,
+    bidCount: 12,
+    endsIn: 3600 * 5 + 4200,
+    ended: false
+  },
+  {
+    id: 3,
+    name: "Concorde British Airways",
+    scale: "1:200",
+    brand: "Gemini Jets",
+    emoji: "🚀",
+    img: "",
+    startBid: 90,
+    currentBid: 214,
+    bidCount: 18,
+    endsIn: 1800,
+    ended: false
+  },
+  {
+    id: 4,
+    name: "Pan Am Boeing 707 vintage",
+    scale: "1:200",
+    brand: "Herpa",
+    emoji: "🌍",
+    img: "",
+    startBid: 35,
+    currentBid: 67,
+    bidCount: 4,
+    endsIn: 0,
+    ended: true
+  },
+  {
+    id: 5,
+    name: "Singapore Airlines A350 ULR",
+    scale: "1:400",
+    brand: "Phoenix Models",
+    emoji: "🌏",
+    img: "",
+    startBid: 55,
+    currentBid: 99,
+    bidCount: 9,
+    endsIn: 3600 * 8,
+    ended: false
+  },
+  {
+    id: 6,
+    name: "Icelandair B757 Aurora (gesigneerd)",
+    scale: "1:200",
+    brand: "Herpa Snapfit",
+    emoji: "🌌",
+    img: "",
+    startBid: 25,
+    currentBid: 47,
+    bidCount: 3,
+    endsIn: 3600 + 222,
+    ended: false
+  }
+];
+
+/* ── State ── */
+let currentUser = null;
+let auctionData = [];
+let myBids = {};
+
+/* ── Storage helpers ── */
+function getStoredAuctions() {
+  try { return JSON.parse(localStorage.getItem('kv_auctions') || 'null'); } catch(e) { return null; }
+}
+function saveAuctions(a) { localStorage.setItem('kv_auctions', JSON.stringify(a)); }
+function getStoredBids() {
+  try { return JSON.parse(localStorage.getItem('kv_auction_bids') || '{}'); } catch(e) { return {}; }
+}
+function saveBids(b) { localStorage.setItem('kv_auction_bids', JSON.stringify(b)); }
+function getCart() {
+  try { return JSON.parse(localStorage.getItem('kamervliegers_cart') || '[]'); } catch(e) { return []; }
+}
+
+/* ── Login check ── */
+function checkLogin() {
+  currentUser = localStorage.getItem('currentUser') || localStorage.getItem('currentName') || null;
+  if (currentUser) {
+    openAuction();
+  } else {
+    showToast('Niet ingelogd — log eerst in via de webshop');
+  }
+}
+
+function openAuction() {
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('auction-area').style.display = 'block';
+
+  const pill = document.getElementById('user-pill');
+  pill.style.display = 'block';
+  pill.textContent = '👤 ' + currentUser;
+
+  const stored = getStoredAuctions();
+  auctionData = stored || JSON.parse(JSON.stringify(DEFAULT_AUCTIONS));
+  myBids = getStoredBids();
+
+  updateCartCount();
+  renderAuctions();
+  renderMyBids();
+  startTimers();
+}
+
+/* ── Cart count in hero ── */
+function updateCartCount() {
+  const cart = getCart();
+  const total = cart.reduce((s, i) => s + (i.qty || 1), 0);
+  document.getElementById('cart-count-hero').textContent = total;
+}
+
+/* ── Timer helpers ── */
+function formatTime(s) {
+  if (s <= 0) return 'Afgelopen';
+  if (s < 60)   return s + 's';
+  if (s < 3600) return Math.floor(s / 60) + 'm ' + (s % 60) + 's';
+  return Math.floor(s / 3600) + 'u ' + Math.floor((s % 3600) / 60) + 'm';
+}
+
+function timerClass(s, ended) {
+  if (ended || s <= 0) return 'ended';
+  if (s < 1800) return 'soon';
+  return 'active';
+}
+
+/* ── Render veilingen ── */
+function renderAuctions() {
+  const grid = document.getElementById('auctions-grid');
+
+  grid.innerHTML = auctionData.map(a => {
+    const myBid   = myBids[a.id];
+    const winning = myBid && myBid >= a.currentBid;
+    const minNext = a.currentBid + 1;
+    const cls     = timerClass(a.endsIn, a.ended);
+    const timerTxt = a.ended ? 'Veiling afgelopen' : formatTime(a.endsIn);
+
+    /* Afbeelding: gebruik img als die bestaat, anders emoji */
+    const imgHTML = a.img
+      ? `<img src="${a.img}" alt="${a.name}" style="width:100%;height:100%;object-fit:contain">`
+      : `<span style="font-size:72px">${a.emoji}</span>`;
+
+    const statusBadge = myBid
+      ? `<span class="badge ${winning ? 'badge-win' : 'badge-out'}" style="margin-left:6px">${winning ? '🏆 Winnend' : '⬇ Overboden'}</span>`
+      : '';
+
+    const bidSection = !a.ended
+      ? `<div class="bid-input-row">
+           <input type="number" id="bid-input-${a.id}" placeholder="Min €${minNext}" min="${minNext}" step="1">
+           <button class="bid-btn" onclick="placeBid(${a.id})">Bieden</button>
+         </div>`
+      : `<p style="margin-top:10px;font-size:12px;color:#9ca3af;font-style:italic">Geen biedingen meer mogelijk</p>`;
+
+    return `
+      <div class="auction-card" id="card-${a.id}">
+        <div class="auction-img">${imgHTML}</div>
+        <div class="auction-body">
+          <div class="auction-name">${a.name}</div>
+          <div class="auction-meta">${a.scale} &nbsp;·&nbsp; ${a.brand}</div>
+          <div class="bid-row">
+            <div>
+              <div class="bid-label">Huidig bod</div>
+              <div class="bid-amount" id="bid-amount-${a.id}">€${a.currentBid}</div>
+            </div>
+            <div style="text-align:right">
+              <div class="bid-label">Biedingen</div>
+              <div class="bid-count" id="bid-count-${a.id}">${a.bidCount}×</div>
+            </div>
+          </div>
+          <div>
+            <span class="timer ${cls}" id="timer-${a.id}">${timerTxt}</span>
+            <span id="status-badge-${a.id}">${statusBadge}</span>
+          </div>
+          ${bidSection}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* ── Bod plaatsen ── */
+function placeBid(id) {
+  const a = auctionData.find(x => x.id === id);
+  if (!a || a.ended) return;
+
+  const input = document.getElementById('bid-input-' + id);
+  const val   = parseFloat(input.value);
+
+  if (!val || isNaN(val)) {
+    showToast('Voer een geldig bedrag in');
+    return;
+  }
+  if (val <= a.currentBid) {
+    showToast('Bod moet hoger zijn dan €' + a.currentBid);
+    return;
+  }
+
+  a.currentBid = parseFloat(val.toFixed(2));
+  a.bidCount++;
+  myBids[id] = a.currentBid;
+
+  saveAuctions(auctionData);
+  saveBids(myBids);
+
+  /* Activiteitslog bijwerken (admin.html leest dit) */
+  try {
+    const log = JSON.parse(localStorage.getItem('kv_admin_log') || '[]');
+    log.unshift({ msg: currentUser + ' bood €' + a.currentBid + ' op ' + a.name, type: 'info', ts: new Date().toISOString() });
+    localStorage.setItem('kv_admin_log', JSON.stringify(log.slice(0, 100)));
+  } catch(e) {}
+
+  input.value = '';
+
+  /* Update alleen de betreffende kaart */
+  const amountEl = document.getElementById('bid-amount-' + id);
+  const countEl  = document.getElementById('bid-count-' + id);
+  const badgeEl  = document.getElementById('status-badge-' + id);
+  if (amountEl) amountEl.textContent = '€' + a.currentBid;
+  if (countEl)  countEl.textContent  = a.bidCount + '×';
+  if (badgeEl)  badgeEl.innerHTML    = `<span class="badge badge-win" style="margin-left:6px">🏆 Winnend</span>`;
+
+  renderMyBids();
+  showToast('Bod van €' + a.currentBid.toFixed(2) + ' geplaatst! 🎉');
+}
+
+/* ── Render mijn biedingen ── */
+function renderMyBids() {
+  const body    = document.getElementById('my-bids-body');
+  const entries = Object.entries(myBids);
+
+  if (entries.length === 0) {
+    body.innerHTML = '<div style="padding:40px;text-align:center;color:#9ca3af;font-size:13px">Nog geen biedingen geplaatst.</div>';
+    return;
+  }
+
+  let h = '<table class="bids-table"><thead><tr><th>Model</th><th>Jouw bod</th><th>Huidig bod</th><th>Status</th></tr></thead><tbody>';
+
+  entries.forEach(([id, bid]) => {
+    const a = auctionData.find(x => x.id == id);
+    if (!a) return;
+    const winning = bid >= a.currentBid;
+    const status  = a.ended
+      ? `<span class="badge ${winning ? 'badge-win' : 'badge-out'}">${winning ? '🏆 Gewonnen' : 'Niet gewonnen'}</span>`
+      : `<span class="badge ${winning ? 'badge-win' : 'badge-out'}">${winning ? '🏆 Winnend' : '⬇ Overboden'}</span>`;
+
+    h += `<tr>
+      <td>
+        <strong>${a.name}</strong><br>
+        <span style="font-size:11px;color:#9ca3af">${a.scale} · ${a.brand}</span>
+      </td>
+      <td style="font-weight:700;color:#094f78">€${parseFloat(bid).toFixed(2)}</td>
+      <td>€${a.currentBid.toFixed(2)}</td>
+      <td>${status}</td>
+    </tr>`;
+  });
+
+  h += '</tbody></table>';
+  body.innerHTML = h;
+}
+
+/* ── Live timers ── */
+function startTimers() {
+  setInterval(() => {
+    let needsRerender = false;
+
+    auctionData.forEach(a => {
+      if (!a.ended && a.endsIn > 0) {
+        a.endsIn--;
+        if (a.endsIn <= 0) {
+          a.ended   = true;
+          needsRerender = true;
+        }
+        const timerEl = document.getElementById('timer-' + a.id);
+        if (timerEl) {
+          timerEl.textContent = a.ended ? 'Veiling afgelopen' : formatTime(a.endsIn);
+          timerEl.className   = 'timer ' + timerClass(a.endsIn, a.ended);
+        }
+      }
+    });
+
+    if (needsRerender) {
+      renderAuctions();
+      renderMyBids();
+    }
+  }, 1000);
+}
+
+/* ── Toast ── */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+/* ── Init ── */
+window.addEventListener('DOMContentLoaded', () => {
+  currentUser = localStorage.getItem('currentUser') || localStorage.getItem('currentName') || null;
+  updateCartCount();
+  if (currentUser) {
+    openAuction();
+  }
+});
+</script>
+</body>
+</html>
