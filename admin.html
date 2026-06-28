@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kamervliegers — Admin</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --sky: #0e7ab5;
+  --sky-dark: #094f78;
+  --sky-light: #e6f4fb;
+  --sky-mid: #b3d9f0;
+  --ink: #111827;
+  --ink-mid: #374151;
+  --ink-soft: #6b7280;
+  --ink-faint: #9ca3af;
+  --surface: #ffffff;
+  --bg: #f0f7fc;
+  --border: #d1e7f5;
+  --border-soft: #e8f2fa;
+  --green: #10b981;
+  --green-bg: #ecfdf5;
+  --amber: #f59e0b;
+  --amber-bg: #fffbeb;
+  --red: #ef4444;
+  --red-bg: #fef2f2;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 220px;
+  min-height: 100vh;
+  background: var(--sky-dark);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+}
+
+.sidebar-logo {
+  padding: 22px 20px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+}
+
+.sidebar-logo .wordmark {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -.3px;
+}
+
+.sidebar-logo .sub {
+  font-size: 11px;
+  color: rgba(255,255,255,.45);
+  margin-top: 2px;
+}
+
+.nav {
+  padding: 12px 10px;
+  flex: 1;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: rgba(255,255,255,.65);
+  cursor: pointer;
+  transition: all .15s;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  margin-bottom: 2px;
+}
+
+.nav-item:hover { background: rgba(255,255,255,.08); color: #fff; }
+.nav-item.active { background: rgba(255,255,255,.15); color: #fff; font-weight: 500; }
+
+.nav-item svg { width: 16px; height: 16px; flex-shrink: 0; opacity: .8; }
+.nav-item.active svg { opacity: 1; }
+
+.sidebar-footer {
+  padding: 14px 10px;
+  border-top: 1px solid rgba(255,255,255,.1);
+}
+
+.sidebar-footer .admin-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,.08);
+}
+
+.admin-avatar {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--sky);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: #fff;
+  flex-shrink: 0;
+}
+
+.admin-info { flex: 1; min-width: 0; }
+.admin-info .name { font-size: 12px; color: #fff; font-weight: 500; }
+.admin-info .role { font-size: 10px; color: rgba(255,255,255,.4); }
+
+/* ── Main content ── */
+.main {
+  margin-left: 220px;
+  flex: 1;
+  min-height: 100vh;
+}
+
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.page-title { font-size: 16px; font-weight: 600; color: var(--ink); }
+.page-sub { font-size: 12px; color: var(--ink-soft); margin-top: 1px; }
+
+.refresh-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink-mid);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.refresh-btn:hover { background: var(--bg); border-color: var(--sky-mid); }
+.refresh-btn svg { width: 13px; height: 13px; }
+
+.content { padding: 24px 28px; }
+
+/* ── Sections ── */
+.section { display: none; }
+.section.active { display: block; }
+
+/* ── Stat cards ── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: var(--shadow);
+}
+
+.stat-card .icon {
+  width: 36px; height: 36px;
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 12px;
+}
+
+.stat-card .icon svg { width: 18px; height: 18px; }
+.icon-blue { background: var(--sky-light); color: var(--sky); }
+.icon-green { background: var(--green-bg); color: var(--green); }
+.icon-amber { background: var(--amber-bg); color: var(--amber); }
+.icon-red { background: var(--red-bg); color: var(--red); }
+
+.stat-card .val { font-size: 26px; font-weight: 700; color: var(--ink); line-height: 1; }
+.stat-card .lbl { font-size: 12px; color: var(--ink-soft); margin-top: 4px; }
+
+/* ── Overview mini-cards row ── */
+.overview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+
+/* ── Cards / tables ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border-soft);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-header .title { font-size: 14px; font-weight: 600; color: var(--ink); }
+.card-header .count { font-size: 12px; color: var(--ink-soft); background: var(--bg); padding: 2px 9px; border-radius: 20px; border: 1px solid var(--border); }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+thead th {
+  padding: 10px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+tbody td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--ink-mid);
+  vertical-align: middle;
+}
+
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: var(--sky-light); }
+
+/* ── Badges ── */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; font-weight: 500;
+  padding: 3px 9px;
+  border-radius: 20px;
+}
+
+.badge-green { background: var(--green-bg); color: #065f46; }
+.badge-amber { background: var(--amber-bg); color: #92400e; }
+.badge-blue  { background: var(--sky-light); color: var(--sky-dark); }
+.badge-red   { background: var(--red-bg);   color: #991b1b; }
+.badge-gray  { background: #f3f4f6; color: #4b5563; }
+
+.dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.dot-green { background: var(--green); }
+.dot-amber { background: var(--amber); }
+.dot-red   { background: var(--red); }
+
+/* ── Thumbnail ── */
+.thumb {
+  width: 40px; height: 40px;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-soft);
+  background: var(--bg);
+}
+
+/* ── Empty state ── */
+.empty {
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--ink-faint);
+}
+
+.empty svg { width: 40px; height: 40px; margin-bottom: 12px; opacity: .4; }
+.empty p { font-size: 14px; }
+.empty small { font-size: 12px; display: block; margin-top: 4px; }
+
+/* ── Action buttons ── */
+.btn-danger {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 13px;
+  border-radius: var(--radius-sm);
+  border: 1px solid #fca5a5;
+  background: var(--red-bg);
+  color: #991b1b;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.btn-danger:hover { background: #fee2e2; }
+.btn-danger svg { width: 12px; height: 12px; }
+
+.btn-sm {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 11px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink-mid);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.btn-sm:hover { background: var(--bg); }
+.btn-sm svg { width: 12px; height: 12px; }
+
+/* ── Product ranking ── */
+.rank-num {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700;
+  background: var(--sky-light);
+  color: var(--sky-dark);
+}
+
+.rank-num.gold   { background: #fef3c7; color: #92400e; }
+.rank-num.silver { background: #f3f4f6; color: #374151; }
+.rank-num.bronze { background: #fdf4ec; color: #7c3f00; }
+
+/* ── Modal backdrop ── */
+.modal-bg {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.35);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+.modal-bg.open { display: flex; }
+
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 24px;
+  width: 420px;
+  max-width: 92vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,.2);
+}
+
+.modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+.modal p  { font-size: 13px; color: var(--ink-soft); margin-bottom: 20px; line-height: 1.6; }
+
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+/* ── Warning banner ── */
+.warn-banner {
+  background: var(--amber-bg);
+  border: 1px solid #fde68a;
+  border-radius: var(--radius-sm);
+  padding: 10px 16px;
+  font-size: 12px;
+  color: #78350f;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.5;
+}
+
+.warn-banner svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; }
+
+/* ── Search ── */
+.search-wrap {
+  position: relative;
+  margin-bottom: 16px;
+}
+.search-wrap svg {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  width: 14px; height: 14px; color: var(--ink-faint);
+}
+.search-wrap input {
+  width: 280px;
+  padding: 7px 10px 7px 32px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--surface);
+  outline: none;
+  transition: border .15s;
+}
+.search-wrap input:focus { border-color: var(--sky-mid); }
+
+/* ── Responsive fallback ── */
+@media (max-width: 1100px) {
+  .overview-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 900px) {
+  .stats-grid { grid-template-columns: repeat(2,1fr); }
+}
+
+/* ── Activity log ── */
+.log-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 13px;
+}
+.log-row:last-child { border-bottom: none; }
+
+.log-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+.log-text { flex: 1; line-height: 1.5; }
+.log-time { font-size: 11px; color: var(--ink-faint); flex-shrink: 0; }
+
+/* ── Orders ── */
+.order-block {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.order-block:last-child { border-bottom: none; }
+
+.order-block-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.order-id { font-weight: 700; font-size: 14px; color: var(--ink); }
+.order-time { font-size: 11px; color: var(--ink-faint); margin-top: 2px; }
+
+.order-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 20px;
+  font-size: 12px;
+  color: var(--ink-mid);
+  margin-bottom: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+}
+
+.order-meta span.lbl { color: var(--ink-faint); }
+
+.order-items { border-top: 1px dashed var(--border); padding-top: 10px; }
+
+.order-item-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  font-size: 13px;
+}
+
+.order-totals {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-soft);
+  font-size: 13px;
+  max-width: 280px;
+  margin-left: auto;
+}
+
+.order-totals .row { display: flex; justify-content: space-between; padding: 2px 0; }
+.order-totals .grand { font-weight: 700; font-size: 14px; margin-top: 4px; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.lock-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--sky-dark);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lock-overlay.unlocked { display: none; }
+
+.lock-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 36px 32px;
+  width: 360px;
+  max-width: 90vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,.3);
+  text-align: center;
+}
+
+.lock-card .icon-wrap {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: var(--sky-light);
+  color: var(--sky);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 18px;
+}
+.lock-card .icon-wrap svg { width: 26px; height: 26px; }
+.lock-card h2 { font-size: 17px; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+.lock-card p { font-size: 13px; color: var(--ink-soft); margin-bottom: 20px; line-height: 1.5; }
+
+.lock-card input {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  font-size: 15px;
+  text-align: center;
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+  outline: none;
+  font-family: inherit;
+}
+.lock-card input:focus { border-color: var(--sky-mid); }
+
+.lock-card .lock-error { color: #991b1b; font-size: 12px; min-height: 16px; margin-bottom: 10px; }
+
+.lock-card button {
+  width: 100%;
+  padding: 11px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--sky);
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.lock-card button:hover { background: var(--sky-dark); }
+
+</style>
+</head>
+<body>
+<div class="lock-overlay" id="lock-overlay">
+  <div class="lock-card">
+    <div class="icon-wrap">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-12V7a4 4 0 10-8 0v2"/></svg>
+    </div>
+    <h2>Admin toegang</h2>
+    <p>Voer de toegangscode in om het beheerpaneel te openen.</p>
+    <input type="password" id="lock-code" placeholder="Toegangscode" autocomplete="off">
+    <div class="lock-error" id="lock-error"></div>
+    <button onclick="checkAdminCode()">Ontgrendelen</button>
+  </div>
+</div>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="wordmark">✈ Kamervliegers</div>
+    <div class="sub">Beheerpaneel</div>
+  </div>
+
+  <nav class="nav">
+    <button class="nav-item active" onclick="showSection('overview', this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      Overzicht
+    </button>
+
+    <button class="nav-item" onclick="showSection('accounts', this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Accounts
+    </button>
+
+    <button class="nav-item" onclick="showSection('bestellingen', this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 12h6M9 16h6"/></svg>
+      Bestellingen
+    </button>
+
+    <button class="nav-item" onclick="showSection('winkelwagen', this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+      Winkelwagens
+    </button>
+
+    <button class="nav-item" onclick="showSection('producten', this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+      Producten
+    </button>
+
+    <button class="nav-item" onclick="showSection('activiteit', this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      Activiteit
+    </button>
+
+    <button class="nav-item" onclick="showSection('instellingen', this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Instellingen
+    </button>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="admin-pill">
+      <div class="admin-avatar">A</div>
+      <div class="admin-info">
+        <div class="name">Admin</div>
+        <div class="role">Beheerder</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title" id="page-title">Overzicht</div>
+      <div class="page-sub" id="page-sub">Alle data uit localStorage</div>
+    </div>
+    <button class="refresh-btn" onclick="loadAll()">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      Vernieuwen
+    </button>
+  </div>
+
+  <div class="content">
+
+    <!-- OVERZICHT -->
+    <div class="section active" id="section-overview">
+      <div class="warn-banner">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Dit dashboard leest <strong>localStorage</strong> van je browser. Open <code>admin.html</code> in dezelfde browser als je webshop voor live data.
+      </div>
+
+      <div class="stats-grid" id="overview-stats"></div>
+
+      <div class="overview-grid">
+        <div class="card">
+          <div class="card-header">
+            <span class="title">Laatste accounts</span>
+            <button class="btn-sm" onclick="showSection('accounts', document.querySelectorAll('.nav-item')[1])">Alles zien →</button>
+          </div>
+          <div id="overview-accounts"></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="title">Laatste bestellingen</span>
+            <button class="btn-sm" onclick="showSection('bestellingen', document.querySelectorAll('.nav-item')[2])">Alles zien →</button>
+          </div>
+          <div id="overview-orders"></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="title">Winkelwagen overzicht</span>
+            <button class="btn-sm" onclick="showSection('winkelwagen', document.querySelectorAll('.nav-item')[3])">Alles zien →</button>
+          </div>
+          <div id="overview-cart"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCOUNTS -->
+    <div class="section" id="section-accounts">
+      <div class="search-wrap">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" id="account-search" placeholder="Zoek op e-mailadres…" oninput="renderAccounts()">
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="title">Geregistreerde accounts</span>
+          <span class="count" id="account-count">0 accounts</span>
+        </div>
+        <div id="accounts-body"></div>
+      </div>
+    </div>
+
+    <!-- BESTELLINGEN -->
+    <div class="section" id="section-bestellingen">
+      <div class="search-wrap">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" id="order-search" placeholder="Zoek op bestelnummer, naam of e-mail…" oninput="renderOrders()">
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="title">Geplaatste bestellingen</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span class="count" id="orders-count">0 bestellingen</span>
+            <button class="btn-danger" onclick="openModal('modal-clear-orders')">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              Alles wissen
+            </button>
+          </div>
+        </div>
+        <div id="orders-body"></div>
+      </div>
+    </div>
+
+    <!-- WINKELWAGEN -->
+    <div class="section" id="section-winkelwagen">
+      <div class="card">
+        <div class="card-header">
+          <span class="title">Actieve winkelwagen inhoud</span>
+          <button class="btn-danger" onclick="openModal('modal-clear')">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            Winkelmand wissen
+          </button>
+        </div>
+        <div id="cart-body"></div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-header"><span class="title">Samenvatting</span></div>
+        <div id="cart-summary"></div>
+      </div>
+    </div>
+
+    <!-- PRODUCTEN -->
+    <div class="section" id="section-producten">
+      <div class="card">
+        <div class="card-header">
+          <span class="title">Producten in winkelwagen (populariteit)</span>
+          <span class="count" id="product-count">0 items</span>
+        </div>
+        <div id="products-body"></div>
+      </div>
+    </div>
+
+    <!-- ACTIVITEIT -->
+    <div class="section" id="section-activiteit">
+      <div class="card">
+        <div class="card-header">
+          <span class="title">Activiteitenlog</span>
+          <button class="btn-danger" onclick="clearLog()">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            Log wissen
+          </button>
+        </div>
+        <div id="activity-body"></div>
+      </div>
+    </div>
+
+    <!-- INSTELLINGEN -->
+    <div class="section" id="section-instellingen">
+      <div class="card" style="max-width:500px">
+        <div class="card-header"><span class="title">Opgeslagen data</span></div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-soft)">
+            <div>
+              <div style="font-size:13px;font-weight:500">Accounts (<code>users</code>)</div>
+              <div style="font-size:12px;color:var(--ink-soft)" id="s-users-size">—</div>
+            </div>
+            <button class="btn-danger" onclick="openModal('modal-del-users')">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              Verwijderen
+            </button>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-soft)">
+            <div>
+              <div style="font-size:13px;font-weight:500">Bestellingen (<code>kamervliegers_orders</code>)</div>
+              <div style="font-size:12px;color:var(--ink-soft)" id="s-orders-size">—</div>
+            </div>
+            <button class="btn-danger" onclick="openModal('modal-clear-orders')">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              Wissen
+            </button>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-soft)">
+            <div>
+              <div style="font-size:13px;font-weight:500">Winkelwagen (<code>kamervliegers_cart</code>)</div>
+              <div style="font-size:12px;color:var(--ink-soft)" id="s-cart-size">—</div>
+            </div>
+            <button class="btn-danger" onclick="openModal('modal-clear')">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              Wissen
+            </button>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0">
+            <div>
+              <div style="font-size:13px;font-weight:500">Huidig ingelogde gebruiker</div>
+              <div style="font-size:12px;color:var(--ink-soft)" id="s-current-user">—</div>
+            </div>
+            <button class="btn-danger" onclick="logoutUser()">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+              Uitloggen
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="max-width:500px;margin-top:16px">
+        <div class="card-header"><span class="title">Exporteer data</span></div>
+        <div style="padding:20px;display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn-sm" onclick="exportJSON('users')">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Accounts exporteren
+          </button>
+          <button class="btn-sm" onclick="exportJSON('kamervliegers_orders')">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Bestellingen exporteren
+          </button>
+          <button class="btn-sm" onclick="exportJSON('kamervliegers_cart')">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Winkelwagen exporteren
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<!-- Modals -->
+<div class="modal-bg" id="modal-clear">
+  <div class="modal">
+    <h3>Winkelwagen wissen</h3>
+    <p>Weet je zeker dat je de hele winkelwagen wilt leegmaken? Dit kan niet ongedaan worden gemaakt.</p>
+    <div class="modal-actions">
+      <button class="btn-sm" onclick="closeModal('modal-clear')">Annuleren</button>
+      <button class="btn-danger" onclick="clearCart()">Ja, wissen</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-del-users">
+  <div class="modal">
+    <h3>Alle accounts verwijderen</h3>
+    <p>Weet je zeker dat je <strong>alle geregistreerde accounts</strong> wilt verwijderen? Dit verwijdert ook de inlogsessie en kan niet ongedaan worden gemaakt.</p>
+    <div class="modal-actions">
+      <button class="btn-sm" onclick="closeModal('modal-del-users')">Annuleren</button>
+      <button class="btn-danger" onclick="deleteUsers()">Ja, verwijderen</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-del-account">
+  <div class="modal">
+    <h3>Account verwijderen</h3>
+    <p>Weet je zeker dat je het account van <strong id="del-email-label"></strong> wilt verwijderen?</p>
+    <div class="modal-actions">
+      <button class="btn-sm" onclick="closeModal('modal-del-account')">Annuleren</button>
+      <button class="btn-danger" onclick="deleteAccount()">Ja, verwijderen</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-del-order">
+  <div class="modal">
+    <h3>Bestelling verwijderen</h3>
+    <p>Weet je zeker dat je deze bestelling wilt verwijderen uit het archief? Dit kan niet ongedaan worden gemaakt.</p>
+    <div class="modal-actions">
+      <button class="btn-sm" onclick="closeModal('modal-del-order')">Annuleren</button>
+      <button class="btn-danger" onclick="deleteOrder()">Ja, verwijderen</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-clear-orders">
+  <div class="modal">
+    <h3>Alle bestellingen wissen</h3>
+    <p>Weet je zeker dat je <strong>het volledige bestellingenarchief</strong> wilt wissen? Dit kan niet ongedaan worden gemaakt.</p>
+    <div class="modal-actions">
+      <button class="btn-sm" onclick="closeModal('modal-clear-orders')">Annuleren</button>
+      <button class="btn-danger" onclick="clearOrders()">Ja, wissen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Data helpers ──────────────────────────────────────────────
+function getUsers()   { try { return JSON.parse(localStorage.getItem('users') || '{}'); } catch(e) { return {}; } }
+function getCart()    { try { return JSON.parse(localStorage.getItem('kamervliegers_cart') || '[]'); } catch(e) { return []; } }
+function getOrders()  { try { return JSON.parse(localStorage.getItem('kamervliegers_orders') || '[]'); } catch(e) { return []; } }
+function saveOrders(o){ localStorage.setItem('kamervliegers_orders', JSON.stringify(o)); }
+function getLog()     { try { return JSON.parse(localStorage.getItem('kv_admin_log') || '[]'); } catch(e) { return []; } }
+function saveLog(l)   { localStorage.setItem('kv_admin_log', JSON.stringify(l)); }
+function getCurrentUser() { return localStorage.getItem('currentUser') || null; }
+
+function addLog(msg, type) {
+  const log = getLog();
+  log.unshift({ msg, type: type || 'info', ts: new Date().toISOString() });
+  if (log.length > 100) log.pop();
+  saveLog(log);
+}
+
+function timeAgo(iso) {
+  const d = new Date(iso);
+  const now = new Date();
+  const s = Math.floor((now - d) / 1000);
+  if (s < 60)   return 'zojuist';
+  if (s < 3600) return Math.floor(s/60) + ' min geleden';
+  if (s < 86400) return Math.floor(s/3600) + ' u geleden';
+  return d.toLocaleDateString('nl-NL');
+}
+
+// ── Navigation ────────────────────────────────────────────────
+const pageTitles = {
+  overview:     ['Overzicht',      'Dashboard samenvatting'],
+  accounts:     ['Accounts',       'Alle geregistreerde gebruikers'],
+  bestellingen: ['Bestellingen',   'Geplaatste bestellingen door klanten'],
+  winkelwagen:  ['Winkelwagens',   'Actieve winkelwagen inhoud'],
+  producten:    ['Producten',      'Populariteit op basis van winkelwagen'],
+  activiteit:   ['Activiteit',     'Beheerdersacties en log'],
+  instellingen: ['Instellingen',   'Databeheer en export'],
+};
+
+function showSection(name, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('section-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  const [title, sub] = pageTitles[name] || [name, ''];
+  document.getElementById('page-title').textContent = title;
+  document.getElementById('page-sub').textContent   = sub;
+}
+
+// ── Overview ──────────────────────────────────────────────────
+function renderOverview() {
+  const users  = getUsers();
+  const cart   = getCart();
+  const orders = getOrders();
+  const userKeys = Object.keys(users);
+  const numItems = cart.reduce((s, i) => s + (i.qty || 1), 0);
+  const total    = cart.reduce((s, i) => s + (i.price * (i.qty || 1)), 0);
+  const current  = getCurrentUser();
+
+  document.getElementById('overview-stats').innerHTML = `
+    <div class="stat-card">
+      <div class="icon icon-blue"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
+      <div class="val">${userKeys.length}</div>
+      <div class="lbl">Accounts</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon icon-blue"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></div>
+      <div class="val">${orders.length}</div>
+      <div class="lbl">Bestellingen</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon icon-green"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg></div>
+      <div class="val">${numItems}</div>
+      <div class="lbl">Producten in mand</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon icon-amber"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+      <div class="val">€${total.toFixed(2)}</div>
+      <div class="lbl">Winkelwagen waarde</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon ${current ? 'icon-green' : 'icon-red'}"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
+      <div class="val" style="font-size:15px;margin-top:4px">${current ? current.split('@')[0] : 'Niemand'}</div>
+      <div class="lbl">Ingelogd als</div>
+    </div>
+  `;
+
+  // Mini account list
+  const acEl = document.getElementById('overview-accounts');
+  if (userKeys.length === 0) {
+    acEl.innerHTML = '<div class="empty"><p>Geen accounts</p></div>';
+  } else {
+    let h = '<table><thead><tr><th>Email</th><th>Status</th></tr></thead><tbody>';
+    userKeys.slice(0, 5).forEach(email => {
+      const active = email === current;
+      h += `<tr><td>${email}</td><td><span class="badge ${active ? 'badge-green' : 'badge-gray'}">${active ? 'Ingelogd' : 'Uitgelogd'}</span></td></tr>`;
+    });
+    if (userKeys.length > 5) h += `<tr><td colspan="2" style="color:var(--ink-faint);font-size:12px;text-align:center">+${userKeys.length - 5} meer</td></tr>`;
+    h += '</tbody></table>';
+    acEl.innerHTML = h;
+  }
+
+  // Mini orders list
+  const orEl = document.getElementById('overview-orders');
+  if (orders.length === 0) {
+    orEl.innerHTML = '<div class="empty"><p>Nog geen bestellingen</p></div>';
+  } else {
+    let h = '<table><thead><tr><th>Bestelnr.</th><th>Klant</th><th>Totaal</th></tr></thead><tbody>';
+    orders.slice(0, 5).forEach(o => {
+      h += `<tr><td>${o.orderNumber}</td><td>${o.voornaam} ${o.achternaam}</td><td>€${o.total}</td></tr>`;
+    });
+    if (orders.length > 5) h += `<tr><td colspan="3" style="color:var(--ink-faint);font-size:12px;text-align:center">+${orders.length - 5} meer</td></tr>`;
+    h += '</tbody></table>';
+    orEl.innerHTML = h;
+  }
+
+  // Mini cart
+  const cartEl = document.getElementById('overview-cart');
+  if (cart.length === 0) {
+    cartEl.innerHTML = '<div class="empty"><p>Winkelwagen is leeg</p></div>';
+  } else {
+    let h = '<table><thead><tr><th>Product</th><th>Aantal</th><th>Prijs</th></tr></thead><tbody>';
+    cart.slice(0, 5).forEach(item => {
+      h += `<tr><td>${item.name}</td><td>${item.qty || 1}</td><td>€${(item.price * (item.qty||1)).toFixed(2)}</td></tr>`;
+    });
+    h += '</tbody></table>';
+    cartEl.innerHTML = h;
+  }
+}
+
+// ── Accounts ──────────────────────────────────────────────────
+let pendingDeleteEmail = null;
+
+function renderAccounts() {
+  const users   = getUsers();
+  const current = getCurrentUser();
+  const q       = (document.getElementById('account-search')?.value || '').toLowerCase();
+  const keys    = Object.keys(users).filter(e => e.includes(q));
+
+  document.getElementById('account-count').textContent = keys.length + ' account' + (keys.length !== 1 ? 's' : '');
+
+  if (keys.length === 0) {
+    document.getElementById('accounts-body').innerHTML = `<div class="empty"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg><p>Geen accounts gevonden</p><small>Er zijn nog geen gebruikers geregistreerd.</small></div>`;
+    return;
+  }
+
+  let h = `<table><thead><tr><th>#</th><th>E-mailadres</th><th>Status</th><th>Wachtwoord</th><th>Acties</th></tr></thead><tbody>`;
+  keys.forEach((email, i) => {
+    const active = email === current;
+    h += `<tr>
+      <td style="color:var(--ink-faint)">${i+1}</td>
+      <td><strong>${email}</strong></td>
+      <td><span class="badge ${active ? 'badge-green' : 'badge-gray'}"><span class="dot ${active ? 'dot-green' : ''}"></span>${active ? 'Ingelogd' : 'Uitgelogd'}</span></td>
+      <td style="font-family:monospace;font-size:11px;color:var(--ink-faint)">${users[email].password ? users[email].password.substring(0,16) + '…' : '—'}</td>
+      <td>
+        <button class="btn-danger" onclick="confirmDeleteAccount('${email}')">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          Verwijderen
+        </button>
+      </td>
+    </tr>`;
+  });
+  h += '</tbody></table>';
+  document.getElementById('accounts-body').innerHTML = h;
+}
+
+function confirmDeleteAccount(email) {
+  pendingDeleteEmail = email;
+  document.getElementById('del-email-label').textContent = email;
+  openModal('modal-del-account');
+}
+
+function deleteAccount() {
+  if (!pendingDeleteEmail) return;
+  const users = getUsers();
+  delete users[pendingDeleteEmail];
+  localStorage.setItem('users', JSON.stringify(users));
+  if (getCurrentUser() === pendingDeleteEmail) localStorage.removeItem('currentUser');
+  addLog('Account verwijderd: ' + pendingDeleteEmail, 'danger');
+  pendingDeleteEmail = null;
+  closeModal('modal-del-account');
+  loadAll();
+}
+
+function deleteUsers() {
+  localStorage.removeItem('users');
+  localStorage.removeItem('currentUser');
+  addLog('Alle accounts verwijderd', 'danger');
+  closeModal('modal-del-users');
+  loadAll();
+}
+
+// ── Bestellingen ──────────────────────────────────────────────
+let pendingDeleteOrderIdx = null;
+
+function renderOrders() {
+  const orders = getOrders();
+  const q = (document.getElementById('order-search')?.value || '').toLowerCase();
+
+  const filtered = orders.filter((o, idx) => {
+    o.__idx = idx; // bewaar originele index voor verwijderen, ook als er gefilterd is
+    const haystack = (o.orderNumber + ' ' + o.voornaam + ' ' + o.achternaam + ' ' + o.email).toLowerCase();
+    return haystack.includes(q);
+  });
+
+  document.getElementById('orders-count').textContent = filtered.length + ' bestelling' + (filtered.length !== 1 ? 'en' : '');
+
+  if (filtered.length === 0) {
+    document.getElementById('orders-body').innerHTML = `<div class="empty"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg><p>Geen bestellingen gevonden</p><small>Zodra een klant afrekent, verschijnt de bestelling hier.</small></div>`;
+    return;
+  }
+
+  let h = '';
+  filtered.forEach(o => {
+    const itemsHtml = (o.items || []).map(item => `
+      <div class="order-item-row">
+        <img class="thumb" src="${item.image || ''}" onerror="this.style.opacity='.2'" alt="">
+        <div style="flex:1">
+          <strong>${item.name}</strong>
+          <div style="font-size:11px;color:var(--ink-soft)">${item.qty || 1} × €${parseFloat(item.price).toFixed(2)}</div>
+        </div>
+        <div style="font-weight:600">€${(item.price * (item.qty||1)).toFixed(2)}</div>
+      </div>
+    `).join('');
+
+    h += `
+      <div class="order-block">
+        <div class="order-block-head">
+          <div>
+            <div class="order-id">${o.orderNumber}</div>
+            <div class="order-time">${o.ts ? timeAgo(o.ts) : ''}</div>
+          </div>
+          <button class="btn-danger" onclick="confirmDeleteOrder(${o.__idx})">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            Verwijderen
+          </button>
+        </div>
+
+        <div class="order-meta">
+          <div><span class="lbl">Naam:</span> ${o.voornaam} ${o.achternaam}</div>
+          <div><span class="lbl">E-mail:</span> ${o.email}</div>
+          <div><span class="lbl">Adres:</span> ${o.adres}</div>
+          <div><span class="lbl">Postcode/Plaats:</span> ${o.postcode} ${o.plaats}</div>
+          <div><span class="lbl">Land:</span> ${o.land}</div>
+          <div><span class="lbl">Betaalmethode:</span> ${o.betaalmethode}</div>
+        </div>
+
+        <div class="order-items">${itemsHtml}</div>
+
+        <div class="order-totals">
+          <div class="row"><span>Subtotaal</span><span>€${o.subtotal}</span></div>
+          <div class="row"><span>Verzending</span><span>€${o.shipping}</span></div>
+          <div class="row grand"><span>Totaal</span><span>€${o.total}</span></div>
+        </div>
+      </div>
+    `;
+  });
+
+  document.getElementById('orders-body').innerHTML = h;
+}
+
+function confirmDeleteOrder(idx) {
+  pendingDeleteOrderIdx = idx;
+  openModal('modal-del-order');
+}
+
+function deleteOrder() {
+  if (pendingDeleteOrderIdx === null) return;
+  const orders = getOrders();
+  const removed = orders.splice(pendingDeleteOrderIdx, 1)[0];
+  saveOrders(orders);
+  addLog('Bestelling verwijderd: ' + (removed ? removed.orderNumber : ''), 'danger');
+  pendingDeleteOrderIdx = null;
+  closeModal('modal-del-order');
+  loadAll();
+}
+
+function clearOrders() {
+  localStorage.removeItem('kamervliegers_orders');
+  addLog('Bestellingenarchief gewist', 'danger');
+  closeModal('modal-clear-orders');
+  loadAll();
+}
+
+// ── Cart ──────────────────────────────────────────────────────
+function renderCart() {
+  const cart = getCart();
+
+  if (cart.length === 0) {
+    document.getElementById('cart-body').innerHTML    = `<div class="empty"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg><p>Winkelwagen is leeg</p></div>`;
+    document.getElementById('cart-summary').innerHTML = '<div style="padding:16px;color:var(--ink-faint);font-size:13px">Geen items.</div>';
+    return;
+  }
+
+  let h = `<table><thead><tr><th></th><th>Product</th><th>Prijs/stuk</th><th>Aantal</th><th>Totaal</th><th>Acties</th></tr></thead><tbody>`;
+  cart.forEach((item, i) => {
+    h += `<tr>
+      <td><img class="thumb" src="${item.image || ''}" onerror="this.style.opacity='.2'" alt=""></td>
+      <td><strong>${item.name}</strong></td>
+      <td>€${parseFloat(item.price).toFixed(2)}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <button class="btn-sm" style="padding:3px 8px" onclick="changeQty(${i}, -1)">−</button>
+          <span style="font-weight:600;min-width:20px;text-align:center">${item.qty || 1}</span>
+          <button class="btn-sm" style="padding:3px 8px" onclick="changeQty(${i}, 1)">+</button>
+        </div>
+      </td>
+      <td style="font-weight:600">€${(item.price * (item.qty||1)).toFixed(2)}</td>
+      <td>
+        <button class="btn-danger" onclick="removeCartItem(${i})">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+          Verwijderen
+        </button>
+      </td>
+    </tr>`;
+  });
+  h += '</tbody></table>';
+  document.getElementById('cart-body').innerHTML = h;
+
+  const subtotaal  = cart.reduce((s, i) => s + i.price * (i.qty||1), 0);
+  const bezorging  = subtotaal >= 50 ? 0 : 4.95;
+  const totaal     = subtotaal + bezorging;
+  const numItems   = cart.reduce((s, i) => s + (i.qty||1), 0);
+
+  document.getElementById('cart-summary').innerHTML = `
+    <div style="padding:16px 20px;display:flex;flex-direction:column;gap:8px;max-width:360px;margin-left:auto">
+      <div style="display:flex;justify-content:space-between;font-size:13px"><span>Subtotaal (${numItems} items)</span><span>€${subtotaal.toFixed(2)}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px"><span>Bezorging</span><span>${bezorging === 0 ? '<span style="color:var(--green);font-weight:500">Gratis</span>' : '€' + bezorging.toFixed(2)}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:700;border-top:1px solid var(--border);padding-top:10px;margin-top:4px"><span>Totaal incl. BTW</span><span>€${totaal.toFixed(2)}</span></div>
+    </div>
+  `;
+}
+
+function changeQty(idx, delta) {
+  const cart = getCart();
+  if (!cart[idx]) return;
+  cart[idx].qty = (cart[idx].qty || 1) + delta;
+  if (cart[idx].qty <= 0) cart.splice(idx, 1);
+  localStorage.setItem('kamervliegers_cart', JSON.stringify(cart));
+  addLog('Winkelwagen bijgewerkt', 'info');
+  loadAll();
+}
+
+function removeCartItem(idx) {
+  const cart = getCart();
+  if (!cart[idx]) return;
+  const naam = cart[idx].name;
+  cart.splice(idx, 1);
+  localStorage.setItem('kamervliegers_cart', JSON.stringify(cart));
+  addLog('Product verwijderd uit winkelwagen: ' + naam, 'info');
+  loadAll();
+}
+
+function clearCart() {
+  localStorage.removeItem('kamervliegers_cart');
+  addLog('Winkelwagen gewist', 'danger');
+  closeModal('modal-clear');
+  loadAll();
+}
+
+// ── Products ──────────────────────────────────────────────────
+function renderProducts() {
+  const cart   = getCart();
+  const sorted = [...cart].sort((a, b) => (b.qty||1) - (a.qty||1));
+  const total  = cart.reduce((s, i) => s + (i.qty||1), 0);
+
+  document.getElementById('product-count').textContent = total + ' item' + (total !== 1 ? 's' : '') + ' in totaal';
+
+  if (sorted.length === 0) {
+    document.getElementById('products-body').innerHTML = `<div class="empty"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg><p>Geen producten gevonden</p><small>Voeg producten toe aan de winkelwagen.</small></div>`;
+    return;
+  }
+
+  const rankClass = i => i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+
+  let h = `<table><thead><tr><th>Rang</th><th></th><th>Product</th><th>Schaal/merk</th><th>Stukprijs</th><th>Aantal</th><th>Omzet</th></tr></thead><tbody>`;
+  sorted.forEach((item, i) => {
+    h += `<tr>
+      <td><span class="rank-num ${rankClass(i)}">${i+1}</span></td>
+      <td><img class="thumb" src="${item.image || ''}" onerror="this.style.opacity='.2'" alt=""></td>
+      <td><strong>${item.name}</strong></td>
+      <td style="color:var(--ink-soft)">${item.brand || '—'}</td>
+      <td>€${parseFloat(item.price).toFixed(2)}</td>
+      <td><span class="badge badge-blue">${item.qty || 1}×</span></td>
+      <td style="font-weight:600">€${(item.price * (item.qty||1)).toFixed(2)}</td>
+    </tr>`;
+  });
+  h += '</tbody></table>';
+  document.getElementById('products-body').innerHTML = h;
+}
+
+// ── Activity log ──────────────────────────────────────────────
+function renderActivity() {
+  const log = getLog();
+  if (log.length === 0) {
+    document.getElementById('activity-body').innerHTML = `<div class="empty"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg><p>Geen activiteit geregistreerd</p><small>Acties worden hier bijgehouden.</small></div>`;
+    return;
+  }
+  const colors = { info: 'var(--sky)', danger: 'var(--red)', success: 'var(--green)' };
+  let h = '';
+  log.forEach(entry => {
+    const col = colors[entry.type] || 'var(--ink-faint)';
+    h += `<div class="log-row">
+      <div class="log-dot" style="background:${col}"></div>
+      <div class="log-text">${entry.msg}</div>
+      <div class="log-time">${timeAgo(entry.ts)}</div>
+    </div>`;
+  });
+  document.getElementById('activity-body').innerHTML = h;
+}
+
+function clearLog() {
+  localStorage.removeItem('kv_admin_log');
+  renderActivity();
+}
+
+// ── Settings ──────────────────────────────────────────────────
+function renderSettings() {
+  const u = localStorage.getItem('users') || '{}';
+  const c = localStorage.getItem('kamervliegers_cart') || '[]';
+  const o = localStorage.getItem('kamervliegers_orders') || '[]';
+  const cu = getCurrentUser();
+
+  document.getElementById('s-users-size').textContent  = Object.keys(JSON.parse(u)).length + ' accounts · ' + Math.round(u.length / 1024 * 10) / 10 + ' KB';
+  document.getElementById('s-orders-size').textContent = JSON.parse(o).length + ' bestellingen · ' + Math.round(o.length / 1024 * 10) / 10 + ' KB';
+  document.getElementById('s-cart-size').textContent   = JSON.parse(c).length + ' items · ' + Math.round(c.length / 1024 * 10) / 10 + ' KB';
+  document.getElementById('s-current-user').textContent = cu || 'Niemand ingelogd';
+}
+
+function logoutUser() {
+  localStorage.removeItem('currentUser');
+  addLog('Gebruiker uitgelogd via admin', 'info');
+  loadAll();
+}
+
+function exportJSON(key) {
+  const data = localStorage.getItem(key) || '{}';
+  const blob = new Blob([data], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = key + '_export.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  addLog('Export: ' + key, 'info');
+}
+
+// ── Modals ────────────────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-bg').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+const ADMIN_CODE = 'WitteWasBeer01'; // 👈 verander dit in je eigen geheime code
+
+function checkAdminCode() {
+  const input = document.getElementById('lock-code').value;
+  const errEl = document.getElementById('lock-error');
+
+  if (input === ADMIN_CODE) {
+    sessionStorage.setItem('kv_admin_unlocked', 'true');
+    document.getElementById('lock-overlay').classList.add('unlocked');
+    errEl.textContent = '';
+  } else {
+    errEl.textContent = 'Onjuiste code, probeer het opnieuw.';
+    document.getElementById('lock-code').value = '';
+    document.getElementById('lock-code').focus();
+  }
+}
+
+document.getElementById('lock-code').addEventListener('keydown', e => {
+  if (e.key === 'Enter') checkAdminCode();
+});
+
+if (sessionStorage.getItem('kv_admin_unlocked') === 'true') {
+  document.getElementById('lock-overlay').classList.add('unlocked');
+} else {
+  document.getElementById('lock-code').focus();
+}
+
+// ── Init ──────────────────────────────────────────────────────
+function loadAll() {
+  renderOverview();
+  renderAccounts();
+  renderOrders();
+  renderCart();
+  renderProducts();
+  renderActivity();
+  renderSettings();
+}
+
+loadAll();
+</script>
+</body>
+</html>
