@@ -180,16 +180,39 @@ if (!order) {
     document.getElementById("intro-text").textContent =
         "We hebben je bestelling ontvangen en gaan er snel mee aan de slag.";
 
-    const itemsHtml = order.items.map(item => `
+    const itemsHtml = order.items.map(item => {
+
+    // Ondersteunt zowel webshop (image) als veiling (img)
+    const imgSrc = item.img || item.image || "";
+
+    return `
         <div class="item-row">
-            <img src="${item.image}" alt="${item.name}" onerror="this.src='photos/placeholder.png'">
+            ${
+                imgSrc
+                ? `<img src="${imgSrc}" alt="${item.name}" onerror="this.src='photos/placeholder.png'">`
+                : `<div style="
+                    width:60px;
+                    height:60px;
+                    background:#f0f7fc;
+                    border-radius:8px;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-size:28px;
+                ">✈</div>`
+            }
+
             <div class="name">
                 <strong>${item.name}</strong><br>
                 Aantal: ${item.qty}
             </div>
-            <div>€${(item.price * item.qty).toFixed(2)}</div>
+
+            <div>
+                €${(item.price * item.qty).toFixed(2)}
+            </div>
         </div>
-    `).join("");
+    `;
+}).join("");
 
     content.innerHTML = `
         <div class="card">

@@ -105,6 +105,19 @@ input.valid{
     border:1px solid #ccc;
 }
 
+.product-info .no-img {
+    width:70px;
+    height:70px;
+    background:#f0f7fc;
+    border-radius:8px;
+    border:1px solid #ccc;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:28px;
+    flex-shrink:0;
+}
+
 .total{
     margin-top:20px;
     padding-top:15px;
@@ -244,20 +257,15 @@ Bestelling plaatsen
 </div>
 
 <script>
-/* =========================
-   CART OPHALEN
-========================= */
-const cart =
-JSON.parse(localStorage.getItem("kamervliegers_cart")) || [];
-
-const container =
-document.getElementById("cart-items");
-
+const cart = JSON.parse(localStorage.getItem("kamervliegers_cart")) || [];
+const container = document.getElementById("cart-items");
 let subtotal = 0;
 
-/* =========================
-   BESTELOVERZICHT RENDEREN
-========================= */
+function getItemImg(item) {
+  // Ondersteunt zowel item.img (veiling) als item.image (webshop)
+  return item.img || item.image || '';
+}
+
 function renderOrderSummary() {
     if (cart.length === 0) {
         container.innerHTML = `<p style="color:#777">Je winkelwagen is leeg.</p>`;
@@ -273,18 +281,20 @@ function renderOrderSummary() {
         const itemTotal = item.price * item.qty;
         subtotal += itemTotal;
 
+        const imgSrc = getItemImg(item);
+        const imgHTML = imgSrc
+            ? `<img src="${imgSrc}" alt="${item.name}" onerror="this.style.display='none'">`
+            : `<div class="no-img">✈</div>`;
+
         row.innerHTML = `
             <div class="product-info">
-                <img src="${item.image}" alt="${item.name}" onerror="this.src='photos/placeholder.png'">
+                ${imgHTML}
                 <div>
                     <strong>${item.name}</strong><br>
                     Aantal: ${item.qty}
                 </div>
             </div>
-
-            <div>
-                €${itemTotal.toFixed(2)}
-            </div>
+            <div>€${itemTotal.toFixed(2)}</div>
         `;
 
         container.appendChild(row);
@@ -294,19 +304,13 @@ function renderOrderSummary() {
 function updateTotal() {
     const shippingSelect = document.getElementById("shipping");
     let shipping = parseFloat(shippingSelect.value);
-
     const shippingInfo = document.getElementById("shipping-info");
 
-    // GRATIS VERZENDING REGEL
-    if (subtotal >= 35) {
-        shipping = 0;
-    }
+    if (subtotal >= 35) shipping = 0;
 
     const total = subtotal + shipping;
-
     document.getElementById("total").textContent = total.toFixed(2);
 
-    // UI tekst onder producten
     if (shippingInfo) {
         if (subtotal >= 35) {
             shippingInfo.innerHTML = `
@@ -314,23 +318,15 @@ function updateTotal() {
                 <b style="color:green">Gratis verzending</b>
             `;
         } else {
-            shippingInfo.innerHTML = `
-                Verzendkosten €${shipping.toFixed(2)}
-            `;
+            shippingInfo.innerHTML = `Verzendkosten €${shipping.toFixed(2)}`;
         }
     }
 }
 
 renderOrderSummary();
 updateTotal();
+document.getElementById("shipping").addEventListener("change", updateTotal);
 
-document
-.getElementById("shipping")
-.addEventListener("change", updateTotal);
-
-/* =========================
-   VALIDATIE
-========================= */
 const fields = {
     voornaam:   { regex: /^[A-Za-zÀ-ÖØ-öø-ÿ\s'-]{2,}$/, msg: "Vul een geldige voornaam in (min. 2 letters)" },
     achternaam: { regex: /^[A-Za-zÀ-ÖØ-öø-ÿ\s'-]{2,}$/, msg: "Vul een geldige achternaam in (min. 2 letters)" },
@@ -353,30 +349,16 @@ function validateField(name) {
     }
 
     const ok = cfg.regex.test(val);
-
-    if (ok) {
-        el.classList.remove("invalid");
-        el.classList.add("valid");
-        errEl.textContent = "";
-    } else {
-        el.classList.remove("valid");
-        el.classList.add("invalid");
-        errEl.textContent = cfg.msg;
-    }
-
+    el.classList.toggle("invalid", !ok);
+    el.classList.toggle("valid", ok);
+    errEl.textContent = ok ? "" : cfg.msg;
     return ok;
 }
 
 function validateAll() {
     let allOk = true;
-
-    Object.keys(fields).forEach(name => {
-        if (!validateField(name)) allOk = false;
-    });
-
-    const btn = document.getElementById("placeOrderBtn");
-    btn.disabled = !(allOk && cart.length > 0);
-
+    Object.keys(fields).forEach(name => { if (!validateField(name)) allOk = false; });
+    document.getElementById("placeOrderBtn").disabled = !(allOk && cart.length > 0);
     return allOk;
 }
 
@@ -386,9 +368,6 @@ Object.keys(fields).forEach(name => {
 
 validateAll();
 
-/* =========================
-   BESTELLING PLAATSEN
-========================= */
 function placeOrder() {
     if (!validateAll() || cart.length === 0) {
         alert("Vul alle velden correct in voordat je de bestelling plaatst.");
@@ -396,11 +375,8 @@ function placeOrder() {
     }
 
     const shipping = parseFloat(document.getElementById("shipping").value);
-    const total = subtotal + shipping;
-
-    const orderNumber =
-    "KV-" +
-    Math.floor(Math.random() * 100000);
+    const total = subtotal + (subtotal >= 35 ? 0 : shipping);
+    const orderNumber = "KV-" + Math.floor(Math.random() * 100000);
 
     const orderData = {
         orderNumber,
@@ -419,18 +395,14 @@ function placeOrder() {
         total: total.toFixed(2)
     };
 
-    /* Permanent archief — blijft staan voor admin.html */
     const orders = JSON.parse(localStorage.getItem("kamervliegers_orders") || "[]");
     orders.unshift(orderData);
     localStorage.setItem("kamervliegers_orders", JSON.stringify(orders));
-
-    /* Tijdelijk record — alleen voor bedankt.html */
     localStorage.setItem("laatste_bestelling", JSON.stringify(orderData));
     localStorage.removeItem("kamervliegers_cart");
 
     window.location.href = "bedankt.html";
 }
-
 </script>
 
 </body>

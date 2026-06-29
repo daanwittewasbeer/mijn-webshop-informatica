@@ -25,18 +25,21 @@ h2 {
   margin-bottom:15px;
 }
 
-input, textarea {
+input[type=text], input[type=number], input[type=datetime-local], input[type=url], textarea {
   width:100%;
   padding:10px;
   margin-bottom:10px;
   border:1px solid #d1e7f5;
   border-radius:8px;
   font-size:14px;
+  box-sizing:border-box;
 }
 
 label {
   font-size:12px;
   color:#6b7280;
+  display:block;
+  margin-bottom:4px;
 }
 
 button {
@@ -54,8 +57,120 @@ button:hover {
   background:#094f78;
 }
 
+button:disabled {
+  background:#9ca3af;
+  cursor:not-allowed;
+}
+
 small {
   color:#6b7280;
+  display:block;
+  margin-bottom:14px;
+}
+
+.seller-pill {
+  background:#e6f4fb;
+  border:1px solid #d1e7f5;
+  color:#094f78;
+  font-size:13px;
+  padding:9px 12px;
+  border-radius:8px;
+  margin-bottom:16px;
+}
+
+.login-warning {
+  background:#fffbeb;
+  border:1px solid #fde68a;
+  color:#78350f;
+  font-size:13px;
+  padding:14px 16px;
+  border-radius:8px;
+  margin-bottom:16px;
+  line-height:1.5;
+}
+
+.login-warning a {
+  color:#094f78;
+  font-weight:700;
+  text-decoration:none;
+}
+
+/* Image toggle */
+.img-toggle {
+  display:flex;
+  gap:8px;
+  margin-bottom:10px;
+}
+
+.img-toggle button {
+  width:auto;
+  padding:7px 16px;
+  font-size:13px;
+  border-radius:6px;
+  background:#e6f4fb;
+  color:#094f78;
+  border:1px solid #d1e7f5;
+  font-weight:normal;
+}
+
+.img-toggle button.active {
+  background:#0e7ab5;
+  color:white;
+  border-color:#0e7ab5;
+}
+
+.img-toggle button:hover:not(.active) {
+  background:#d1e7f5;
+}
+
+/* Time limit toggle */
+.time-toggle {
+  display:flex;
+  gap:8px;
+  margin-bottom:10px;
+}
+
+.time-toggle button {
+  width:auto;
+  padding:7px 16px;
+  font-size:13px;
+  border-radius:6px;
+  background:#e6f4fb;
+  color:#094f78;
+  border:1px solid #d1e7f5;
+  font-weight:normal;
+}
+
+.time-toggle button.active {
+  background:#0e7ab5;
+  color:white;
+  border-color:#0e7ab5;
+}
+
+.time-toggle button:hover:not(.active) {
+  background:#d1e7f5;
+}
+
+/* Image preview */
+#img-preview-wrap {
+  display:none;
+  margin-bottom:14px;
+  text-align:center;
+}
+
+#img-preview {
+  max-width:100%;
+  max-height:200px;
+  border-radius:8px;
+  border:1px solid #d1e7f5;
+  object-fit:contain;
+}
+
+#img-preview-error {
+  display:none;
+  font-size:12px;
+  color:#dc2626;
+  margin-top:4px;
 }
 </style>
 </head>
@@ -64,83 +179,258 @@ small {
 <div class="card">
   <h2>✈ Veiling item toevoegen</h2>
 
-  <input id="name" placeholder="Product naam">
-  <textarea id="desc" placeholder="Beschrijving"></textarea>
+  <div id="login-warning" class="login-warning" style="display:none">
+    Je moet ingelogd zijn om een veiling te kunnen plaatsen.
+    <a href="registreren2.html">Inloggen / Registreren →</a>
+  </div>
 
-  <input id="start" type="number" placeholder="Startprijs (€)">
-  <input id="buy" type="number" placeholder="Koop nu prijs (€)">
+  <div id="seller-pill" class="seller-pill" style="display:none">
+    Je plaatst deze veiling als: <strong id="seller-name"></strong>
+  </div>
 
-  <label>📸 Foto uploaden</label>
-  <input id="image" type="file" accept="image/*">
+  <div id="form-fields">
+    <input id="name" type="text" placeholder="Product naam">
+    <textarea id="desc" placeholder="Beschrijving"></textarea>
 
-  <label>⏱ Veiling loopt tot (max 7 dagen vooruit)</label>
-  <input id="enddate" type="datetime-local">
+    <input id="start" type="number" placeholder="Startprijs (€)">
+    <input id="buy" type="number" placeholder="Koop nu prijs (€)">
 
-  <small>Maximaal 7 dagen vanaf nu instellen</small>
+    <!-- Image: upload or URL -->
+    <label>📸 Afbeelding</label>
+    <div class="img-toggle">
+      <button id="btn-upload" class="active" onclick="setImgMode('upload')">Uploaden</button>
+      <button id="btn-url" onclick="setImgMode('url')">URL invoeren</button>
+    </div>
+    <div id="img-upload-field">
+      <input id="image" type="file" accept="image/*">
+    </div>
+    <div id="img-url-field" style="display:none">
+      <input id="image-url" type="url" placeholder="https://example.com/afbeelding.jpg">
+    </div>
 
-  <button onclick="addAuction()">Veiling plaatsen</button>
+    <!-- Preview -->
+    <div id="img-preview-wrap">
+      <img id="img-preview" src="" alt="Voorvertoning">
+      <div id="img-preview-error">⚠ Afbeelding kon niet worden geladen. Controleer de URL.</div>
+    </div>
+
+    <!-- Time limit -->
+    <label>⏱ Tijdsduur veiling</label>
+    <div class="time-toggle">
+      <button id="btn-no-limit" class="active" onclick="setTimeMode('none')">Geen tijdslimiet</button>
+      <button id="btn-custom-time" onclick="setTimeMode('custom')">Einddatum kiezen</button>
+    </div>
+    <div id="enddate-field" style="display:none">
+      <input id="enddate" type="datetime-local">
+      <small>Max 7 dagen vooruit. Laat leeg voor maximale duur.</small>
+    </div>
+
+    <button id="submit-btn" onclick="addAuction()">Veiling plaatsen</button>
+  </div>
 </div>
 
-<script type="module" src="script.js">
+<script>
+let imgMode = 'upload';   // 'upload' | 'url'
+let timeMode = 'none';    // 'none' | 'custom'
+
+function setImgMode(mode) {
+  imgMode = mode;
+  document.getElementById('btn-upload').classList.toggle('active', mode === 'upload');
+  document.getElementById('btn-url').classList.toggle('active', mode === 'url');
+  document.getElementById('img-upload-field').style.display = mode === 'upload' ? 'block' : 'none';
+  document.getElementById('img-url-field').style.display  = mode === 'url'    ? 'block' : 'none';
+  hidePreview();
+}
+
+function setTimeMode(mode) {
+  timeMode = mode;
+  document.getElementById('btn-no-limit').classList.toggle('active', mode === 'none');
+  document.getElementById('btn-custom-time').classList.toggle('active', mode === 'custom');
+  document.getElementById('enddate-field').style.display = mode === 'custom' ? 'block' : 'none';
+}
+
+// Prevent year > 4 digits on datetime-local
+document.addEventListener('DOMContentLoaded', () => {
+  // Blokkeer letters op prijsvelden
+  ['start', 'buy'].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('input', () => {
+      el.value = el.value.replace(/[^0-9.]/g, '');
+      // Voorkom meerdere punten
+      const parts = el.value.split('.');
+      if (parts.length > 2) el.value = parts[0] + '.' + parts.slice(1).join('');
+    });
+    el.addEventListener('keydown', (e) => {
+      const allowed = ['Backspace','Delete','Tab','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End','.'];
+      if (!allowed.includes(e.key) && !/^[0-9]$/.test(e.key)) e.preventDefault();
+    });
+  });
+  document.getElementById('image').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) { hidePreview(); return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => showPreview(ev.target.result);
+    reader.readAsDataURL(file);
+  });
+
+  // URL preview (on blur/enter)
+  document.getElementById('image-url').addEventListener('input', () => {
+    const url = document.getElementById('image-url').value.trim();
+    if (!url) { hidePreview(); return; }
+    showPreview(url);
+  });
+
+  const enddateInput = document.getElementById('enddate');
+  enddateInput.addEventListener('change', () => {
+    const val = enddateInput.value;
+    if (!val) return;
+    const year = new Date(val).getFullYear();
+    if (year > 9999 || year < 1000) {
+      alert('Voer een geldig jaar in (4 cijfers).');
+      enddateInput.value = '';
+    }
+  });
+
+  enddateInput.addEventListener('blur', () => {
+    const val = enddateInput.value;
+    if (!val) return;
+    // Check year part from the string directly (format: YYYY-MM-DDThh:mm)
+    const yearStr = val.split('-')[0];
+    if (yearStr.length > 4) {
+      alert('Het jaar mag maximaal 4 cijfers bevatten.');
+      enddateInput.value = '';
+    }
+  });
+});
+
+function showPreview(src) {
+  const wrap  = document.getElementById('img-preview-wrap');
+  const img   = document.getElementById('img-preview');
+  const err   = document.getElementById('img-preview-error');
+  img.src = src;
+  wrap.style.display = 'block';
+  err.style.display  = 'none';
+  img.onerror = () => {
+    img.style.display = 'none';
+    err.style.display = 'block';
+  };
+  img.onload = () => {
+    img.style.display = 'block';
+    err.style.display = 'none';
+  };
+}
+
+function hidePreview() {
+  const wrap = document.getElementById('img-preview-wrap');
+  wrap.style.display = 'none';
+  document.getElementById('img-preview').src = '';
+}
+
+function getSellerName() {
+  const email = localStorage.getItem('currentUser');
+  if (!email) return null;
+  const naam = localStorage.getItem('currentName');
+  return naam || email.split('@')[0];
+}
+
+const sellerName = getSellerName();
+
+if (!sellerName) {
+  document.getElementById('login-warning').style.display = 'block';
+  document.getElementById('form-fields').style.display = 'none';
+} else {
+  document.getElementById('seller-pill').style.display = 'block';
+  document.getElementById('seller-name').textContent = sellerName;
+}
+
 function addAuction() {
-
-  const file = document.getElementById("image").files[0];
-  const endDateInput = document.getElementById("enddate").value;
-
-  if (!file) {
-    alert("Kies een afbeelding");
+  const seller = getSellerName();
+  if (!seller) {
+    alert('Je moet ingelogd zijn om een veiling te plaatsen.');
+    window.location.href = 'registreren2.html';
     return;
   }
 
-  if (!endDateInput) {
-    alert("Kies een eindtijd");
+  const name  = document.getElementById('name').value.trim();
+  const start = Number(document.getElementById('start').value);
+
+  if (!name || !start) {
+    alert('Vul naam en startprijs in');
     return;
   }
 
-  const endTime = new Date(endDateInput).getTime();
+  const maxDuration = 7 * 24 * 60 * 60;
   const now = Date.now();
-  const max = now + (7 * 24 * 60 * 60 * 1000); // 7 dagen
+  let endsIn = timeMode === 'none' ? null : maxDuration;
 
-  if (endTime > max) {
-    alert("Veiling mag maximaal 7 dagen duren!");
-    return;
+  if (timeMode === 'custom') {
+    const endDateInput = document.getElementById('enddate').value;
+    if (endDateInput) {
+      // Guard: year must be 4 digits
+      const yearStr = endDateInput.split('-')[0];
+      if (yearStr.length > 4) {
+        alert('Het jaar mag maximaal 4 cijfers bevatten.');
+        return;
+      }
+
+      const endTime = new Date(endDateInput).getTime();
+      const max = now + maxDuration * 1000;
+
+      if (endTime > max) {
+        alert('Veiling mag maximaal 7 dagen duren!');
+        return;
+      }
+      if (endTime <= now) {
+        alert('De einddatum moet in de toekomst liggen.');
+        return;
+      }
+      endsIn = Math.floor((endTime - now) / 1000);
+    }
+    // else: leave endsIn = maxDuration (7 days)
   }
 
-  const reader = new FileReader();
-
-  reader.onload = function(e) {
-
-    let auctions = JSON.parse(localStorage.getItem("kv_auctions") || "[]");
-
-    const newItem = {
-      id: Date.now(),
-      name: document.getElementById("name").value,
-      description: document.getElementById("desc").value,
-      startBid: Number(document.getElementById("start").value),
-      currentBid: Number(document.getElementById("start").value),
-      buyNowPrice: Number(document.getElementById("buy").value),
-      img: e.target.result,
-      bidCount: 0,
-      ended: false,
-
-      // ⏱ tijd in seconden (voor jouw veiling systeem)
-      endsIn: Math.floor((endTime - now) / 1000)
-    };
-
-    if (!newItem.name || !newItem.startBid) {
-      alert("Vul naam en startprijs in");
+  // Handle image
+  if (imgMode === 'url') {
+    const url = document.getElementById('image-url').value.trim();
+    if (!url) {
+      alert('Voer een afbeelding-URL in.');
       return;
     }
+    saveAuction(seller, name, url, endsIn);
+  } else {
+    const file = document.getElementById('image').files[0];
+    if (!file) {
+      alert('Kies een afbeelding of voer een URL in.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => saveAuction(seller, name, e.target.result, endsIn);
+    reader.readAsDataURL(file);
+  }
+}
 
-    auctions.unshift(newItem);
+function saveAuction(seller, name, imgSrc, endsIn) {
+  let auctions = JSON.parse(localStorage.getItem('kv_auctions') || '[]');
 
-    localStorage.setItem("kv_auctions", JSON.stringify(auctions));
-
-    alert("Veiling toegevoegd!");
-    window.location.href = "veiling.html";
+  const newItem = {
+    id: Date.now(),
+    name: name,
+    description: document.getElementById('desc').value,
+    startBid: Number(document.getElementById('start').value),
+    currentBid: Number(document.getElementById('start').value),
+    buyNowPrice: Number(document.getElementById('buy').value) || null,
+    img: imgSrc,
+    bidCount: 0,
+    ended: false,
+    seller: seller,
+    endsIn: endsIn   // null = geen tijdslimiet
   };
 
-  reader.readAsDataURL(file);
+  auctions.unshift(newItem);
+  localStorage.setItem('kv_auctions', JSON.stringify(auctions));
+
+  alert('Veiling toegevoegd!');
+  window.location.href = 'veiling.html';
 }
 </script>
 

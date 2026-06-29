@@ -15,12 +15,14 @@
   font-family:'Outfit',sans-serif;
 }
 
+/* ===== BACKGROUND ===== */
 body{
   height:100vh;
   overflow:hidden;
   background:#000;
 }
 
+/* ===== VIDEO LAYER ===== */
 #bg-video{
   position:fixed;
   inset:0;
@@ -37,6 +39,7 @@ body{
   z-index:-1;
 }
 
+/* ===== CARD CENTER (CLEAN) ===== */
 .card{
   position:absolute;
   top:50%;
@@ -44,6 +47,8 @@ body{
   transform:translate(-50%,-50%);
   width:420px;
   max-width:90%;
+  max-height:90vh;
+  overflow-y:auto;
   padding:35px;
   border-radius:28px;
   background:rgba(255,255,255,.13);
@@ -53,10 +58,17 @@ body{
   z-index:10;
 }
 
-.hidden{ display:none; }
+.hidden{
+  display:none;
+}
 
-h2{ text-align:center; margin-bottom:20px; }
+/* ===== TEXT ===== */
+h2{
+  text-align:center;
+  margin-bottom:20px;
+}
 
+/* ===== INPUTS ===== */
 input{
   width:100%;
   padding:14px;
@@ -66,33 +78,60 @@ input{
   outline:none;
 }
 
+/* ===== BUTTON ===== */
+/* FORM BUTTONS (login/register/account) */
 .top-btn{
   position:fixed;
   top:20px;
+
   padding:14px 22px;
   border:none;
   border-radius:12px;
+
   background:#00bfff;
   color:white;
   font-weight:bold;
+
   cursor:pointer;
   font-size:14px;
+
   transition:.25s;
   box-shadow:0 10px 25px rgba(0,0,0,.35);
+
   width:auto;
   display:inline-flex;
   align-items:center;
   justify-content:center;
+
   z-index:9999;
 }
 
-.top-btn:hover{ transform:scale(1.05); filter:brightness(1.1); }
-button:hover{ transform:scale(1.03); filter:brightness(1.1); }
+.top-btn:hover{
+  transform:scale(1.05);
+  filter:brightness(1.1);
+}
 
-.switch{ text-align:center; margin-top:10px; color:#ccc; cursor:pointer; }
+button:hover{
+  transform:scale(1.03);
+  filter:brightness(1.1);
+}
 
-#strength{ font-size:13px; margin-top:5px; min-height:18px; }
+/* ===== SWITCH ===== */
+.switch{
+  text-align:center;
+  margin-top:10px;
+  color:#ccc;
+  cursor:pointer;
+}
 
+/* ===== PASSWORD STRENGTH ===== */
+#strength{
+  font-size:13px;
+  margin-top:5px;
+  min-height:18px;
+}
+
+/* ===== PROFILE ===== */
 .profile-pic{
   width:130px;
   height:130px;
@@ -103,19 +142,31 @@ button:hover{ transform:scale(1.03); filter:brightness(1.1); }
   border:3px solid white;
 }
 
-.home-btn{ left:20px; }
-.video-btn{ right:20px; }
+/* ===== TOP BUTTONS ===== */
 
+.home-btn{
+  left:20px;
+}
+
+.video-btn{
+  right:20px;
+}
+
+/* zorgt dat ze echt netjes bovenin “zweven” */
 .card button{
   width:100%;
   padding:14px;
   border:none;
   border-radius:14px;
+
   background:linear-gradient(135deg,#00bfff,#007bff);
   color:white;
+
   font-weight:600;
   font-size:15px;
+
   cursor:pointer;
+
   transition:0.25s ease;
   box-shadow:0 10px 25px rgba(0,0,0,0.35);
 }
@@ -126,9 +177,48 @@ button:hover{ transform:scale(1.03); filter:brightness(1.1); }
   box-shadow:0 14px 30px rgba(0,0,0,0.45);
 }
 
-.hide-ui .card{ display:none; }
-.hide-ui .top-btn{ display:none; }
+.top-btn{
+  position:fixed;
+  top:20px;
 
+  padding:14px 22px;
+  border:none;
+  border-radius:12px;
+
+  background:#00bfff;
+  color:white;
+  font-weight:bold;
+
+  cursor:pointer;
+  font-size:14px;
+
+  transition:.25s;
+  box-shadow:0 10px 25px rgba(0,0,0,.35);
+
+  width:auto;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  z-index:9999;
+}
+
+/* extra netjes hover effect */
+.top-btn:hover{
+  transform:scale(1.05);
+  filter:brightness(1.1);
+}
+
+/* ===== VIDEO MODE ===== */
+.hide-ui .card{
+  display:none;
+}
+
+.hide-ui .top-btn{
+  display:none;
+}
+
+/* ===== BACK BUTTON ===== */
 .show-ui-btn{
   position:fixed;
   bottom:25px;
@@ -143,8 +233,8 @@ button:hover{ transform:scale(1.03); filter:brightness(1.1); }
   z-index:9999;
 }
 
-.hide-ui .show-ui-btn{ 
-    display:block; 
+.hide-ui .show-ui-btn{
+  display:block;
 }
 
 .card button.btn-delete{
@@ -154,20 +244,33 @@ button:hover{ transform:scale(1.03); filter:brightness(1.1); }
 .card button.btn-delete:hover{
   box-shadow:0 14px 30px rgba(255,77,109,0.45);
 }
+
 </style>
 </head>
 
 <body>
 
-<button class="top-btn home-btn" onclick="location.href='index.html'">🏠 Home</button>
-<button class="top-btn video-btn" onclick="toggleUI()">👁 Video</button>
-<button id="showBtn" class="show-ui-btn" onclick="toggleUI()">⬅ Terug</button>
+<button class="top-btn home-btn" onclick="location.href='index.html'">
+🏠 Home
+</button>
 
+<button class="top-btn video-btn" onclick="toggleUI()">
+👁 Video
+</button>
+
+<button id="showBtn" class="show-ui-btn" onclick="toggleUI()">
+⬅ Terug
+</button>
+
+<!-- VIDEO -->
 <video autoplay muted loop playsinline id="bg-video">
-  <source src="img_webshop/regvid.mp4" type="video/mp4">
+  <source src="img_webshop/reg.webm" type="video/webm">
 </video>
 
 <div class="overlay"></div>
+
+<!-- TOP -->
+
 
 <!-- REGISTER -->
 <div class="card" id="reg-card">
@@ -194,8 +297,8 @@ button:hover{ transform:scale(1.03); filter:brightness(1.1); }
 
   <button onclick="login()">Inloggen</button>
 
-<div class="switch" onclick="showReg()">Registreren</div>
-<div class="switch" onclick="location.href='vergetenw8woord.html'">Wachtwoord vergeten?</div>
+  <div class="switch" onclick="showReg()">Registreren</div>
+  <div class="switch" onclick="location.href='vergetenw8woord.html'">Wachtwoord vergeten?</div>
 </div>
 
 <!-- ACCOUNT -->
@@ -209,11 +312,19 @@ button:hover{ transform:scale(1.03); filter:brightness(1.1); }
   <p style="margin-top:14px"><b>Naam:</b> <span id="user-name"></span></p>
   <p><b>Email:</b> <span id="user-email"></span></p>
 
+  <div id="orders-section" style="margin-top:18px;text-align:left;">
+    <h3 style="font-size:14px;margin-bottom:8px;text-align:center;color:#eee;">📦 Mijn bestellingen</h3>
+    <div id="orders-list" style="max-height:200px;overflow-y:auto;padding-right:4px;"></div>
+  </div>
+
   <button onclick="logout()" style="margin-top:14px">Uitloggen</button>
   <button class="btn-delete" onclick="deleteAccount()" style="margin-top:10px">Account verwijderen</button>
 </div>
 
 <script>
+/* =========================
+   DATA HELPERS (localStorage)
+========================= */
 const $ = id => document.getElementById(id);
 
 function getUsers() {
@@ -225,6 +336,58 @@ function saveUsers(users) {
   localStorage.setItem('users', JSON.stringify(users));
 }
 
+function getOrders() {
+  try { return JSON.parse(localStorage.getItem('kamervliegers_orders') || '[]'); }
+  catch { return []; }
+}
+
+function renderOrders(email) {
+  const el = $('orders-list');
+  if (!el) return;
+
+  const orders = getOrders().filter(o => (o.email || '').trim().toLowerCase() === email);
+
+  if (orders.length === 0) {
+    el.innerHTML = `<p style="color:#ccc;font-size:13px;text-align:center;padding:10px 0">Je hebt nog geen bestellingen geplaatst.</p>`;
+    return;
+  }
+
+  el.innerHTML = orders.map(o => {
+    const itemsHtml = (o.items || []).map(item => {
+    const imgSrc = item.img || item.image || "";
+
+    return `
+      <div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12.5px">
+        <img src="${imgSrc}"
+             onerror="this.style.opacity='0.2'"
+             style="width:32px;height:32px;border-radius:6px;object-fit:cover;background:rgba(255,255,255,0.1)">
+        <span style="flex:1">${item.name} ×${item.qty || 1}</span>
+        <span>€${(item.price * (item.qty || 1)).toFixed(2)}</span>
+      </div>
+    `;
+}).join('');
+
+    const datum = o.ts ? new Date(o.ts).toLocaleDateString('nl-NL') : '';
+
+    return `
+      <div style="background:rgba(255,255,255,0.08);border-radius:12px;padding:12px 14px;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;">
+          <strong>${o.orderNumber}</strong>
+          <span style="color:#ccc;font-size:11px">${datum}</span>
+        </div>
+        ${itemsHtml}
+        <div style="display:flex;justify-content:space-between;font-weight:600;font-size:13px;margin-top:8px;border-top:1px solid rgba(255,255,255,0.15);padding-top:6px;">
+          <span>Totaal</span>
+          <span>€${o.total}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+/* =========================
+   NAVIGATIE
+========================= */
 function showReg() {
   $('reg-card').classList.remove('hidden');
   $('login-card').classList.add('hidden');
@@ -248,8 +411,13 @@ function showSuccess(email) {
   $('user-name').textContent = user.naam || email.split('@')[0];
   $('user-email').textContent = email;
   $('avatar').src = user.avatar || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(email) + '&background=00bfff&color=fff&size=128');
+
+  renderOrders(email);
 }
 
+/* =========================
+   WACHTWOORD STERKTE
+========================= */
 function checkStrength() {
   const val = $('reg-pass').value || '';
   const el = $('strength');
@@ -266,6 +434,9 @@ function checkStrength() {
   el.textContent = val ? levels[score] : '';
 }
 
+/* =========================
+   REGISTREREN
+========================= */
 function register() {
   const naam  = $('reg-name').value.trim();
   const email = $('reg-email').value.trim().toLowerCase();
@@ -294,6 +465,7 @@ function register() {
     return;
   }
 
+  // Automatische avatar op basis van naam — geen upload nodig
   const defaultAvatar = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(naam) + '&background=00bfff&color=fff&size=128';
 
   users[email] = {
@@ -310,6 +482,9 @@ function register() {
   showSuccess(email);
 }
 
+/* =========================
+   INLOGGEN
+========================= */
 function login() {
   const email = $('login-email').value.trim().toLowerCase();
   const pass  = $('login-pass').value;
@@ -332,6 +507,9 @@ function login() {
   showSuccess(email);
 }
 
+/* =========================
+   UITLOGGEN
+========================= */
 function logout() {
   localStorage.removeItem('currentUser');
   localStorage.removeItem('currentName');
@@ -355,6 +533,9 @@ function deleteAccount() {
   showReg();
 }
 
+/* =========================
+   PROFIELFOTO UPLOADEN
+========================= */
 function uploadPic() {
   const file = $('fileInput').files[0];
   if (!file) return;
@@ -375,17 +556,26 @@ function uploadPic() {
   reader.readAsDataURL(file);
 }
 
+/* =========================
+   ACHTERGRONDVIDEO TONEN/VERBERGEN
+========================= */
 function toggleUI() {
   document.body.classList.toggle('hide-ui');
   $('showBtn').style.display = document.body.classList.contains('hide-ui') ? 'block' : 'none';
 }
 
+/* =========================
+   ENTER-TOETS ONDERSTEUNING
+========================= */
 document.addEventListener('keydown', e => {
   if (e.key !== 'Enter') return;
   if (!$('reg-card').classList.contains('hidden'))     register();
   else if (!$('login-card').classList.contains('hidden')) login();
 });
 
+/* =========================
+   AUTO-LOGIN ALS JE AL WAS INGELOGD
+========================= */
 const current = localStorage.getItem('currentUser');
 if (current) {
   showSuccess(current);

@@ -124,7 +124,7 @@ function checkStrength() {
 }
 
 /* =========================
-   CART + ANIMATIES
+   CART
 ========================= */
 function getCart() {
   try {
@@ -138,49 +138,76 @@ function saveCart(cart) {
   localStorage.setItem("kamervliegers_cart", JSON.stringify(cart));
 }
 
+/* =========================
+   TOEVOEGEN AAN WINKELWAGEN
+   — de daadwerkelijke toevoeging gebeurt pas zodra
+     het vliegtuigje is geland (zie flyToCart-callback)
+========================= */
 function addToCart(name, price, image, buttonEl) {
-  const cart = getCart();
+  // Pakt specifiek de winkelwagen-knop, niet de eerste .cart-button
+  // (dat zou anders het inlog/profiel-knopje kunnen zijn)
+  const cartBtn = document.querySelector('a[href="winkelmand.html"]');
 
-  const item = cart.find(i => i.name === name);
-  if (item) item.qty++;
-  else cart.push({ name, price, image, qty: 1 });
+  function voegEchtToe() {
+    const cart = getCart();
+    const item = cart.find(i => i.name === name);
 
-  saveCart(cart);
+    if (item) item.qty++;
+    else cart.push({ name, price, image, qty: 1 });
 
-  const countEl = $("cart-count");
-  if (countEl) countEl.textContent = cart.reduce((s,i)=>s+i.qty,0);
+    saveCart(cart);
 
-  const cartBtn = document.querySelector(".cart-button");
+    const countEl = $("cart-count");
+    if (countEl) countEl.textContent = cart.reduce((s, i) => s + i.qty, 0);
+  }
 
   if (buttonEl && cartBtn) {
-    flyToCart(buttonEl, cartBtn);
-
-    setTimeout(() => {
+    flyToCart(buttonEl, cartBtn, () => {
+      voegEchtToe();
       explodeAt(cartBtn);
-    }, 3000);
+      cartBtn.classList.add("pop");
+      setTimeout(() => cartBtn.classList.remove("pop"), 300);
+    });
+  } else {
+    // Geen animatie mogelijk (knop niet gevonden) — voeg gewoon meteen toe
+    voegEchtToe();
   }
 }
 
-function flyToCart(startEl, cartEl) {
+/* =========================
+   VLIEGTUIGJE-ANIMATIE
+   — landt precies gecentreerd op de winkelwagen-knop
+   — roept onLanded() pas aan ná de volledige vlucht
+========================= */
+function flyToCart(startEl, cartEl, onLanded) {
   const dot = document.createElement("img");
   dot.src = "img_webshop/winkelwagen-animatie.png";
   dot.className = "flying-dot";
+  dot.style.position = "fixed";
   document.body.appendChild(dot);
 
+  const dotRect = dot.getBoundingClientRect();
   const s = startEl.getBoundingClientRect();
   const e = cartEl.getBoundingClientRect();
 
-  dot.style.position = "fixed";
-  dot.style.left = s.left + "px";
-  dot.style.top = s.top + "px";
+  const startX = s.left + s.width / 2 - dotRect.width / 2;
+  const startY = s.top + s.height / 2 - dotRect.height / 2;
+  const endX = e.left + e.width / 2 - dotRect.width / 2;
+  const endY = e.top + e.height / 2 - dotRect.height / 2;
+
+  dot.style.left = startX + "px";
+  dot.style.top = startY + "px";
 
   requestAnimationFrame(() => {
     dot.style.transition = "all 3s ease-in-out";
-    dot.style.left = e.left + "px";
-    dot.style.top = e.top + "px";
+    dot.style.left = endX + "px";
+    dot.style.top = endY + "px";
   });
 
-  setTimeout(() => dot.remove(), 3000);
+  setTimeout(() => {
+    dot.remove();
+    if (onLanded) onLanded();
+  }, 3000);
 }
 
 /* =========================
@@ -191,12 +218,12 @@ function explodeAt(el) {
 
   const exp = document.createElement("div");
   exp.className = "explosion";
-  exp.style.left = r.left + "px";
-  exp.style.top = r.top + "px";
+  exp.style.left = (r.left + r.width / 2) + "px";
+  exp.style.top = (r.top + r.height / 2) + "px";
 
   document.body.appendChild(exp);
 
-  setTimeout(() => exp.remove(), 3000);
+  setTimeout(() => exp.remove(), 600);
 }
 
 /* =========================
@@ -231,10 +258,26 @@ window.addEventListener("DOMContentLoaded", () => {
 
     const naam = localStorage.getItem("currentName") || currentEmail.split("@")[0];
 
+    loginButton.innerHTML = "";
+    loginButton.style.display = "inline-flex";
+    loginButton.style.alignItems = "center";
+
     if (avatar) {
-        loginButton.innerHTML = `<img src="${avatar}" alt="Profielfoto" class="login-avatar">${naam}`;
+        const img = document.createElement("img");
+        img.src = avatar;
+        img.alt = "Profielfoto";
+        img.style.width = "26px";
+        img.style.height = "26px";
+        img.style.borderRadius = "50%";
+        img.style.objectFit = "cover";
+        img.style.marginRight = "8px";
+        img.style.border = "1px solid rgba(255,255,255,0.7)";
+        img.style.flexShrink = "0";
+
+        loginButton.appendChild(img);
+        loginButton.appendChild(document.createTextNode(naam));
     } else {
-        loginButton.innerHTML = `👤 ${naam}`;
+        loginButton.textContent = "👤 " + naam;
     }
 
     loginButton.href = "registreren2.html";
